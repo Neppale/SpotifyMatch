@@ -1,5 +1,5 @@
 import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
-import { FindPlaylistIdsByUserIdService } from '../../../playlist/services/find-playlist-ids-by-user-id.service';
+import { FindPlaylistIdsByUserIdService } from '../../services/find-playlist-ids-by-user-id.service';
 import axios from 'axios';
 
 type SutOutput = {
@@ -19,7 +19,6 @@ const makeSut = (): SutOutput => {
 describe('FindPlaylistIdsByUserIdService', () => {
   it('should call getAccessTokenService.get once', async () => {
     const { sut, getAccessTokenServiceSpy } = makeSut();
-    // how to mock axios.get?
     jest.spyOn(axios, 'get').mockImplementationOnce(() => {
       return Promise.resolve({
         data: {
@@ -35,6 +34,19 @@ describe('FindPlaylistIdsByUserIdService', () => {
     });
     await sut.find('id');
     expect(getAccessTokenServiceSpy.count).toBe(1);
+  });
+
+  it('should return an empty array', async () => {
+    const { sut } = makeSut();
+    jest.spyOn(axios, 'get').mockImplementationOnce(() => {
+      return Promise.resolve({
+        data: {
+          items: [],
+        },
+      });
+    });
+    const playlistIds = await sut.find('id');
+    expect(playlistIds).toEqual([]);
   });
 
   it('should return an array of playlist ids', async () => {
