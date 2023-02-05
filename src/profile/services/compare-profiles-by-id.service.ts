@@ -6,18 +6,23 @@ import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-p
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
 import { FindPlaylistTracksByIdService } from 'src/playlist/services/find-playlist-tracks-by-id.service';
 import { FindPlaylistTracksById } from 'src/playlist/services/useCases/find-playlist-tracks-by-id';
+import { ValidateSimilarTracks } from 'src/tracks/services/useCases/validate-similar-tracks';
+import { ValidateSimilarTracksService } from 'src/tracks/services/validate-similar-tracks.service';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
   findPlaylistTracksByIdService: FindPlaylistTracksById;
+  validateSimilarTracksService: ValidateSimilarTracks;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
     findPlaylistTracksByIdService: FindPlaylistTracksByIdService,
+    validateSimilarTracksService: ValidateSimilarTracksService,
   ) {
     this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
     this.findPlaylistTracksByIdService = findPlaylistTracksByIdService;
+    this.validateSimilarTracksService = validateSimilarTracksService;
   }
   async compare({
     firstProfile,
@@ -56,6 +61,19 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       ),
     );
 
+    for (const track of sameTracks) {
+      firstProfileTrackIdsSet.delete(track);
+      secondProfileTrackIdsSet.delete(track);
+
+      firstProfileTrackIds.splice(firstProfileTrackIds.indexOf(track), 1);
+      secondProfileTrackIds.splice(secondProfileTrackIds.indexOf(track), 1);
+    }
+
+    const probableMatches = await this.validateSimilarTracksService.validate(
+      firstProfileTrackIds,
+      secondProfileTrackIds,
+    );
+
     const percentage =
       Math.round((sameTracks.size / firstProfileTrackIdsSet.size) * 100) || 0;
     const verdict = getVerdict(percentage);
@@ -69,6 +87,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       verdict,
       matches: [...sameTracks],
       sameTracks: sameTracks.size,
+      probableMatches,
       totalTracks,
     };
 

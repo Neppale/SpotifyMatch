@@ -3,7 +3,7 @@ export class ProfileComparison {
   totalTracks: number;
   percentage: number;
   matches: string[];
-  probableMatches: string[];
+  probableMatches?: string[];
   verdict: Verdict;
 }
 

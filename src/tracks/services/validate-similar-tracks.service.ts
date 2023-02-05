@@ -40,7 +40,7 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
       }),
     );
 
-    const firstProfileTracksDataReduced: MinimizedTrack[] =
+    const minimizedFirstProfileTracks: MinimizedTrack[] =
       firstProfileTracksData.map((track) => {
         return {
           artist: track.artists[0].name,
@@ -52,7 +52,7 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
         };
       });
 
-    const secondProfileTracksDataReduced: MinimizedTrack[] =
+    const minimizedSecondProfileTracks: MinimizedTrack[] =
       secondProfileTracksData.map((track) => {
         return {
           artist: track.artists[0].name,
@@ -65,8 +65,8 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
       });
     const similarTracks: string[] = [];
 
-    firstProfileTracksDataReduced.forEach((currentTrack) => {
-      const similarTrack = secondProfileTracksDataReduced.find(
+    minimizedFirstProfileTracks.forEach((currentTrack) => {
+      const similarTrack = minimizedSecondProfileTracks.find(
         (foundTrack) => currentTrack.track === foundTrack.track,
       );
       if (similarTrack) {
