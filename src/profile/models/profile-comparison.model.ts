@@ -2,7 +2,8 @@ export class ProfileComparison {
   sameTracks: number;
   totalTracks: number;
   percentage: number;
-  sameHrefTracks: string[];
+  matches: string[];
+  probableMatches?: string[];
   verdict: Verdict;
 }
 

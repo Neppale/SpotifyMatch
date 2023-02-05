@@ -10,7 +10,7 @@ export class CompareProfilesByIdServiceSpy implements CompareProfilesById {
   findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserIdService;
   result: ProfileComparison = {
     sameTracks: 1,
-    sameHrefTracks: [''],
+    matches: [''],
     percentage: 100,
     totalTracks: 1,
     verdict: Verdict.PERFECT_MATCH,

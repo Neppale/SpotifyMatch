@@ -4,6 +4,7 @@ import { FindPlaylistIdsByUserIdService } from 'src/playlist/services/find-playl
 import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
 import { GetAccessTokenService } from 'src/utils/auth/services/get-access-token.service';
 import { FindPlaylistTracksByIdService } from 'src/playlist/services/find-playlist-tracks-by-id.service';
+import { ValidateSimilarTracksService } from 'src/tracks/services/validate-similar-tracks.service';
 
 @Module({
   imports: [],
@@ -13,6 +14,7 @@ import { FindPlaylistTracksByIdService } from 'src/playlist/services/find-playli
     CompareProfilesByIdService,
     GetAccessTokenService,
     FindPlaylistTracksByIdService,
+    ValidateSimilarTracksService,
   ],
 })
 export class AppModule {}

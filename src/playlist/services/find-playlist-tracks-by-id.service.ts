@@ -25,8 +25,15 @@ export class FindPlaylistTracksByIdService implements FindPlaylistTracksById {
     if (!playlistData.tracks) return [];
 
     const hrefTracks: string[] = playlistData.tracks.items.map(
-      (item) => item.track.href,
+      (item) => item.track?.href,
     );
+
+    hrefTracks.forEach((href, index) => {
+      hrefTracks[index] = href?.replace(
+        'https://api.spotify.com/v1/tracks/',
+        '',
+      );
+    });
 
     return hrefTracks;
   }
