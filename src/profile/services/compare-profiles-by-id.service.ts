@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ProfileParameters } from '../models/profile-parameters';
 import { CompareProfilesById } from './useCases/compare-profiles-by-id';
 import { FindPlaylistHrefTracksByIdService } from '../../playlist/services/find-playlist-href-tracks-by-id.service';
@@ -18,6 +18,10 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     firstProfile,
     secondProfile,
   }: ProfileParameters): Promise<ProfileComparison> {
+    if (!firstProfile || !secondProfile) {
+      throw new BadRequestException('Missing profile id');
+    }
+
     const [firstProfileHrefTracks, secondProfileHrefTracks] = await Promise.all(
       [
         this.findPlaylistHrefTracksByIdService.find(firstProfile),
