@@ -82,23 +82,23 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
       });
     const similarTracks: string[] = [];
 
-    const largestProfile =
+    const largestProfileTracks =
       minimizedFirstProfileTracks.length > minimizedSecondProfileTracks.length
         ? minimizedFirstProfileTracks
         : minimizedSecondProfileTracks;
 
-    const smallestProfile =
+    const smallestProfileTracks =
       minimizedFirstProfileTracks.length < minimizedSecondProfileTracks.length
         ? minimizedFirstProfileTracks
         : minimizedSecondProfileTracks;
 
-    largestProfile.forEach((currentTrack) => {
-      const similarTrack = smallestProfile.find(
+    largestProfileTracks.forEach((currentTrack) => {
+      const similarTrack = smallestProfileTracks.find(
         (foundTrack) => currentTrack.track === foundTrack.track,
       );
       if (similarTrack) {
         if (this.compareTracks(currentTrack, similarTrack)) {
-          similarTracks.push(currentTrack.href);
+          similarTracks.push(`${currentTrack.artist} - ${currentTrack.track}`);
         }
       }
     });

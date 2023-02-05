@@ -44,19 +44,21 @@ export class CompareProfilesByIdService implements CompareProfilesById {
         this.findPlaylistIdsByIdService.find(secondProfile),
       ]);
 
+    console.log(
+      `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
+    );
+
     const firstProfileTrackIds: string[] = [];
     for (const playlistId of firstProfilePlaylistIds) {
       const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
       firstProfileTrackIds.push(...tracks);
     }
-    firstProfilePlaylistIds.filter((track) => track);
 
     const secondProfileTrackIds: string[] = [];
     for (const playlistId of secondProfilePlaylistIds) {
       const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
       secondProfileTrackIds.push(...tracks);
     }
-    secondProfilePlaylistIds.filter((track) => track);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
@@ -82,7 +84,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
         )
-      : null;
+      : undefined;
 
     const percentage = Math.round(
       (sameTracks.size / firstProfileTrackIdsSet.size) * 100,
