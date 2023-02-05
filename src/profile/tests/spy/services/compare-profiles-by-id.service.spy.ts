@@ -1,13 +1,17 @@
-import { FindPlaylistIdsByUserIdService } from 'src/playlist/services/find-playlist-ids-by-user-id.service';
+import { FindPlaylistIdsByUserIdService } from '../../../../playlist/services/find-playlist-ids-by-user-id.service';
+import { FindPlaylistTracksByIdService } from '../../../../playlist/services/find-playlist-tracks-by-id.service';
 import {
   ProfileComparison,
   Verdict,
-} from 'src/profile/models/profile-comparison.model';
-import { ProfileParameters } from 'src/profile/models/profile-parameters';
-import { CompareProfilesById } from 'src/profile/services/useCases/compare-profiles-by-id';
+} from '../../../../profile/models/profile-comparison.model';
+import { ProfileParameters } from '../../../../profile/models/profile-parameters';
+import { CompareProfilesById } from '../../../../profile/services/useCases/compare-profiles-by-id';
+import { ValidateSimilarTracksService } from '../../../../tracks/services/validate-similar-tracks.service';
 
 export class CompareProfilesByIdServiceSpy implements CompareProfilesById {
-  findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserIdService;
+  findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService;
+  findPlaylistTracksByIdService: FindPlaylistTracksByIdService;
+  validateSimilarTracksService: ValidateSimilarTracksService;
   result: ProfileComparison = {
     sameTracks: 1,
     matches: [''],

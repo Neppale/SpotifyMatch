@@ -1,5 +1,5 @@
-import { ProfileComparison } from 'src/profile/models/profile-comparison.model';
-import { ProfileParameters } from 'src/profile/models/profile-parameters';
+import { ProfileComparison } from '../../../profile/models/profile-comparison.model';
+import { ProfileParameters } from '../../../profile/models/profile-parameters';
 
 export interface CompareProfilesById {
   compare({
