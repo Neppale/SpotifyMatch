@@ -43,7 +43,7 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
     const minimizedFirstProfileTracks: MinimizedTrack[] =
       firstProfileTracksData.map((track) => {
         return {
-          artist: track.artists[0].name,
+          artist: track.artists[0]?.name,
           track: track.name,
           album: track.album.name,
           releaseDate: track.album.release_date,
@@ -55,7 +55,7 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
     const minimizedSecondProfileTracks: MinimizedTrack[] =
       secondProfileTracksData.map((track) => {
         return {
-          artist: track.artists[0].name,
+          artist: track.artists[0]?.name,
           track: track.name,
           album: track.album.name,
           releaseDate: track.album.release_date,
@@ -65,8 +65,18 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
       });
     const similarTracks: string[] = [];
 
-    minimizedFirstProfileTracks.forEach((currentTrack) => {
-      const similarTrack = minimizedSecondProfileTracks.find(
+    const largestProfile =
+      minimizedFirstProfileTracks.length > minimizedSecondProfileTracks.length
+        ? minimizedFirstProfileTracks
+        : minimizedSecondProfileTracks;
+
+    const smallestProfile =
+      minimizedFirstProfileTracks.length < minimizedSecondProfileTracks.length
+        ? minimizedFirstProfileTracks
+        : minimizedSecondProfileTracks;
+
+    largestProfile.forEach((currentTrack) => {
+      const similarTrack = smallestProfile.find(
         (foundTrack) => currentTrack.track === foundTrack.track,
       );
       if (similarTrack) {
@@ -74,6 +84,13 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
           similarTracks.push(currentTrack.href);
         }
       }
+    });
+
+    similarTracks.forEach((track, index) => {
+      similarTracks[index] = track.replace(
+        'https://api.spotify.com/v1/tracks/',
+        '',
+      );
     });
 
     return similarTracks;

@@ -43,12 +43,14 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
       firstProfileTrackIds.push(...tracks);
     }
+    firstProfilePlaylistIds.filter((track) => track);
 
     const secondProfileTrackIds: string[] = [];
     for (const playlistId of secondProfilePlaylistIds) {
       const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
       secondProfileTrackIds.push(...tracks);
     }
+    secondProfilePlaylistIds.filter((track) => track);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
