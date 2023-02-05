@@ -1,4 +1,4 @@
-import { FindPlaylistHrefTracksByIdService } from 'src/playlist/services/find-playlist-href-tracks-by-id.service';
+import { FindPlaylistIdsByUserIdService } from 'src/playlist/services/find-playlist-ids-by-user-id.service';
 import {
   ProfileComparison,
   Verdict,
@@ -7,7 +7,7 @@ import { ProfileParameters } from 'src/profile/models/profile-parameters';
 import { CompareProfilesById } from 'src/profile/services/useCases/compare-profiles-by-id';
 
 export class CompareProfilesByIdServiceSpy implements CompareProfilesById {
-  findPlaylistHrefTracksByIdService: FindPlaylistHrefTracksByIdService;
+  findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserIdService;
   result: ProfileComparison = {
     sameTracks: 1,
     sameHrefTracks: [''],

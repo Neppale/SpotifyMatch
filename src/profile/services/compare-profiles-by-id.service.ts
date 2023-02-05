@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ProfileParameters } from '../models/profile-parameters';
 import { CompareProfilesById } from './useCases/compare-profiles-by-id';
-import { FindPlaylistHrefTracksByIdService } from '../../playlist/services/find-playlist-href-tracks-by-id.service';
-import { FindPlaylistHrefTracksById } from '../../playlist/services/useCases/find-playlist-href-tracks-by-id';
+import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
+import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-playlist-ids-by-user-id';
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
-  findPlaylistHrefTracksByIdService: FindPlaylistHrefTracksById;
+  findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserId;
 
   constructor(
-    findPlaylistHrefTracksByIdService: FindPlaylistHrefTracksByIdService,
+    findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserIdService,
   ) {
     this.findPlaylistHrefTracksByIdService = findPlaylistHrefTracksByIdService;
   }
