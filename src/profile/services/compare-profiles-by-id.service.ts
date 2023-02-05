@@ -10,6 +10,8 @@ import { ValidateSimilarTracks } from '../../tracks/services/useCases/validate-s
 import { ValidateSimilarTracksService } from '../../tracks/services/validate-similar-tracks.service';
 import { FindMinimizedTrackService } from '../../tracks/services/find-minimized-track.service';
 import { FindMinimizedTrack } from '../../tracks/services/useCases/find-minimized-track';
+import { ValidateProfileById } from './useCases/validate-profile-by-id';
+import { ValidateProfileByIdService } from './validate-profile-by-id.service';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
@@ -17,17 +19,20 @@ export class CompareProfilesByIdService implements CompareProfilesById {
   findPlaylistTracksByIdService: FindPlaylistTracksById;
   validateSimilarTracksService: ValidateSimilarTracks;
   findMinimizedTrackService: FindMinimizedTrack;
+  validateProfileByIdService: ValidateProfileById;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
     findPlaylistTracksByIdService: FindPlaylistTracksByIdService,
     validateSimilarTracksService: ValidateSimilarTracksService,
     findMinimizedTrackService: FindMinimizedTrackService,
+    validateProfileByIdService: ValidateProfileByIdService,
   ) {
     this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
     this.findPlaylistTracksByIdService = findPlaylistTracksByIdService;
     this.validateSimilarTracksService = validateSimilarTracksService;
     this.findMinimizedTrackService = findMinimizedTrackService;
+    this.validateProfileByIdService = validateProfileByIdService;
   }
   async compare({
     firstProfile,
@@ -36,6 +41,24 @@ export class CompareProfilesByIdService implements CompareProfilesById {
   }: ProfileParameters): Promise<ProfileComparison> {
     if (!firstProfile || !secondProfile) {
       throw new BadRequestException('Missing profile id');
+    }
+
+    console.log(
+      `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
+    );
+
+    const isFirstProfileValid = await this.validateProfileByIdService.validate(
+      firstProfile,
+    );
+    if (!isFirstProfileValid) {
+      throw new BadRequestException('First profile id is invalid');
+    }
+
+    const isSecondProfileValid = await this.validateProfileByIdService.validate(
+      secondProfile,
+    );
+    if (!isSecondProfileValid) {
+      throw new BadRequestException('Second profile id is invalid');
     }
 
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
@@ -49,14 +72,12 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
       firstProfileTrackIds.push(...tracks);
     }
-    firstProfilePlaylistIds.filter((track) => track);
 
     const secondProfileTrackIds: string[] = [];
     for (const playlistId of secondProfilePlaylistIds) {
       const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
       secondProfileTrackIds.push(...tracks);
     }
-    secondProfilePlaylistIds.filter((track) => track);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
@@ -82,7 +103,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
         )
-      : null;
+      : undefined;
 
     const percentage = Math.round(
       (sameTracks.size / firstProfileTrackIdsSet.size) * 100,
