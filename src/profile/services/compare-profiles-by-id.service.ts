@@ -43,6 +43,10 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       throw new BadRequestException('Missing profile id');
     }
 
+    console.log(
+      `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
+    );
+
     const isFirstProfileValid = await this.validateProfileByIdService.validate(
       firstProfile,
     );
@@ -62,10 +66,6 @@ export class CompareProfilesByIdService implements CompareProfilesById {
         this.findPlaylistIdsByIdService.find(firstProfile),
         this.findPlaylistIdsByIdService.find(secondProfile),
       ]);
-
-    console.log(
-      `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
-    );
 
     const firstProfileTrackIds: string[] = [];
     for (const playlistId of firstProfilePlaylistIds) {
