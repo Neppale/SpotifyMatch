@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ValidateSimilarTracks } from './useCases/validate-similar-tracks';
 import axios from 'axios';
-import { GetAccessTokenService } from 'src/utils/auth/services/get-access-token.service';
-import { GetAccessToken } from 'src/utils/auth/services/useCases/get-access-token';
+import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
+import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
 import { DetailedTrack } from '../models/detailed-track.model';
 import { MinimizedTrack } from '../models/minimized-track.model';
 

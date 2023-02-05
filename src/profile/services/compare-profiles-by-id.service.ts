@@ -4,10 +4,10 @@ import { CompareProfilesById } from './useCases/compare-profiles-by-id';
 import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
 import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-playlist-ids-by-user-id';
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
-import { FindPlaylistTracksByIdService } from 'src/playlist/services/find-playlist-tracks-by-id.service';
-import { FindPlaylistTracksById } from 'src/playlist/services/useCases/find-playlist-tracks-by-id';
-import { ValidateSimilarTracks } from 'src/tracks/services/useCases/validate-similar-tracks';
-import { ValidateSimilarTracksService } from 'src/tracks/services/validate-similar-tracks.service';
+import { FindPlaylistTracksByIdService } from '../../playlist/services/find-playlist-tracks-by-id.service';
+import { FindPlaylistTracksById } from '../../playlist/services/useCases/find-playlist-tracks-by-id';
+import { ValidateSimilarTracks } from '../../tracks/services/useCases/validate-similar-tracks';
+import { ValidateSimilarTracksService } from '../../tracks/services/validate-similar-tracks.service';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {

@@ -1,4 +1,4 @@
-import { FindPlaylistIdsByUserId } from 'src/playlist/services/useCases/find-playlist-ids-by-user-id';
+import { FindPlaylistIdsByUserId } from '../../../../playlist/services/useCases/find-playlist-ids-by-user-id';
 
 export class FindPlaylistIdsByUserIdServiceSpy
   implements FindPlaylistIdsByUserId
