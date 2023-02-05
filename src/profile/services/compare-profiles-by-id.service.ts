@@ -106,7 +106,9 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       : undefined;
 
     const percentage = Math.round(
-      (sameTracks.size / firstProfileTrackIdsSet.size) * 100,
+      (sameTracks.size /
+        (firstProfileTrackIdsSet.size + secondProfileTrackIdsSet.size)) *
+        100,
     );
     const verdict = getVerdict(percentage);
     const totalTracks =
