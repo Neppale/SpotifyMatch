@@ -19,26 +19,24 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
     secondProfileTracks: string[],
   ): Promise<string[]> {
     const authorization = await this.getAccessTokenService.get();
+    const batchesOfFirstProfileTracks: string[][] = [];
+
+    for (let i = 0; i < firstProfileTracks.length; i += 50) {
+      batchesOfFirstProfileTracks.push(firstProfileTracks.slice(i, i + 50));
+    }
+
     const firstProfileTracksData = await Promise.all(
-      firstProfileTracks.map(async (track) => {
-        const response = await axios.get(`${this.url}${track}`, {
+      batchesOfFirstProfileTracks.map(async (batch) => {
+        const response = await axios.get(`${this.url}?ids=${batch}`, {
           headers: {
             Authorization: authorization,
           },
         });
-        return response.data as DetailedTrack;
+        return response.data.tracks as DetailedTrack[];
       }),
-    );
-    const secondProfileTracksData = await Promise.all(
-      secondProfileTracks.map(async (track) => {
-        const response = await axios.get(`${this.url}${track}`, {
-          headers: {
-            Authorization: authorization,
-          },
-        });
-        return response.data as DetailedTrack;
-      }),
-    );
+    ).then((data) => {
+      return data.flat();
+    });
 
     const minimizedFirstProfileTracks: MinimizedTrack[] =
       firstProfileTracksData.map((track) => {
@@ -51,6 +49,25 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
           href: track.href,
         };
       });
+
+    const batchesOfSecondProfileTracks: string[][] = [];
+
+    for (let i = 0; i < secondProfileTracks.length; i += 50) {
+      batchesOfSecondProfileTracks.push(secondProfileTracks.slice(i, i + 50));
+    }
+
+    const secondProfileTracksData = await Promise.all(
+      batchesOfSecondProfileTracks.map(async (batch) => {
+        const response = await axios.get(`${this.url}?ids=${batch}`, {
+          headers: {
+            Authorization: authorization,
+          },
+        });
+        return response.data.tracks as DetailedTrack[];
+      }),
+    ).then((data) => {
+      return data.flat();
+    });
 
     const minimizedSecondProfileTracks: MinimizedTrack[] =
       secondProfileTracksData.map((track) => {
