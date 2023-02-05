@@ -25,10 +25,18 @@ export class FindPlaylistIdsByUserIdService implements FindPlaylistIdsByUserId {
     const playlistData: ProfilePlaylistData = response.data;
     if (!playlistData.items) return [];
 
-    const hrefTracks: string[] = playlistData.items.map(
+    const playlistHrefs: string[] = playlistData.items.map(
       (item) => item.tracks.href,
     );
 
-    return hrefTracks;
+    playlistHrefs.forEach((href, index) => {
+      playlistHrefs[index] = href.replace(
+        'https://api.spotify.com/v1/playlists/',
+        '',
+      );
+      playlistHrefs[index] = playlistHrefs[index].replace('/tracks', '');
+    });
+
+    return playlistHrefs;
   }
 }

@@ -4,15 +4,20 @@ import { CompareProfilesById } from './useCases/compare-profiles-by-id';
 import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
 import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-playlist-ids-by-user-id';
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
+import { FindPlaylistTracksByIdService } from 'src/playlist/services/find-playlist-tracks-by-id.service';
+import { FindPlaylistTracksById } from 'src/playlist/services/useCases/find-playlist-tracks-by-id';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
-  findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserId;
+  findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
+  findPlaylistTracksByIdService: FindPlaylistTracksById;
 
   constructor(
-    findPlaylistHrefTracksByIdService: FindPlaylistIdsByUserIdService,
+    findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
+    findPlaylistTracksByIdService: FindPlaylistTracksByIdService,
   ) {
-    this.findPlaylistHrefTracksByIdService = findPlaylistHrefTracksByIdService;
+    this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
+    this.findPlaylistTracksByIdService = findPlaylistTracksByIdService;
   }
   async compare({
     firstProfile,
@@ -22,30 +27,48 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       throw new BadRequestException('Missing profile id');
     }
 
-    const [firstProfileHrefTracks, secondProfileHrefTracks] = await Promise.all(
-      [
-        this.findPlaylistHrefTracksByIdService.find(firstProfile),
-        this.findPlaylistHrefTracksByIdService.find(secondProfile),
-      ],
-    );
+    const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
+      await Promise.all([
+        this.findPlaylistIdsByIdService.find(firstProfile),
+        this.findPlaylistIdsByIdService.find(secondProfile),
+      ]);
 
-    const sameHrefTracks = firstProfileHrefTracks.filter((track) =>
-      secondProfileHrefTracks.includes(track),
-    );
+    const firstProfileTrackIds: string[] = [];
+    for (const playlistId of firstProfilePlaylistIds) {
+      const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
+      firstProfileTrackIds.push(...tracks);
+    }
 
+    const secondProfileTrackIds: string[] = [];
+    for (const playlistId of secondProfilePlaylistIds) {
+      const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
+      secondProfileTrackIds.push(...tracks);
+    }
+
+    const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
+      new Set(firstProfileTrackIds),
+      new Set(secondProfileTrackIds),
+    ];
+
+    const sameTracks = new Set(
+      [...firstProfileTrackIdsSet].filter((currentTrack) =>
+        secondProfileTrackIdsSet.has(currentTrack),
+      ),
+    );
+    const percentage =
+      Math.round((sameTracks.size / firstProfileTrackIdsSet.size) * 100) || 0;
+    const verdict = getVerdict(percentage);
     const totalTracks =
-      firstProfileHrefTracks.length +
-      secondProfileHrefTracks.length -
-      sameHrefTracks.length;
-
-    const percentage = (sameHrefTracks.length / totalTracks) * 100;
+      firstProfileTrackIdsSet.size +
+      secondProfileTrackIdsSet.size -
+      sameTracks.size;
 
     const profileComparison: ProfileComparison = {
-      sameTracks: sameHrefTracks.length,
+      percentage,
+      verdict,
+      sameHrefTracks: [...sameTracks],
+      sameTracks: sameTracks.size,
       totalTracks,
-      sameHrefTracks,
-      percentage: (sameHrefTracks.length / totalTracks) * 100,
-      verdict: getVerdict(percentage),
     };
 
     return profileComparison;
