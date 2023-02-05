@@ -55,6 +55,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
         secondProfileTrackIdsSet.has(currentTrack),
       ),
     );
+
     const percentage =
       Math.round((sameTracks.size / firstProfileTrackIdsSet.size) * 100) || 0;
     const verdict = getVerdict(percentage);
@@ -66,7 +67,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     const profileComparison: ProfileComparison = {
       percentage,
       verdict,
-      sameHrefTracks: [...sameTracks],
+      matches: [...sameTracks],
       sameTracks: sameTracks.size,
       totalTracks,
     };
