@@ -4,7 +4,7 @@ import { FindPlaylistIdsByUserIdService } from '../playlist/services/find-playli
 import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
 import { GetAccessTokenService } from '../utils/auth/services/get-access-token.service';
 import { FindPlaylistTracksByIdService } from '../playlist/services/find-playlist-tracks-by-id.service';
-import { ValidateSimilarTracksService } from '../tracks/services/validate-similar-tracks.service';
+import { FindSimilarTracksService } from '../tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from 'src/tracks/services/find-minimized-track.service';
 import { ValidateProfileByIdService } from './services/validate-profile-by-id.service';
 
@@ -16,7 +16,7 @@ import { ValidateProfileByIdService } from './services/validate-profile-by-id.se
     CompareProfilesByIdService,
     GetAccessTokenService,
     FindPlaylistTracksByIdService,
-    ValidateSimilarTracksService,
+    FindSimilarTracksService,
     FindMinimizedTrackService,
     ValidateProfileByIdService,
   ],

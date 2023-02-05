@@ -6,25 +6,26 @@ import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-p
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
 import { FindPlaylistTracksByIdService } from '../../playlist/services/find-playlist-tracks-by-id.service';
 import { FindPlaylistTracksById } from '../../playlist/services/useCases/find-playlist-tracks-by-id';
-import { ValidateSimilarTracks } from '../../tracks/services/useCases/validate-similar-tracks';
-import { ValidateSimilarTracksService } from '../../tracks/services/validate-similar-tracks.service';
+import { FindSimilarTracks } from '../../tracks/services/useCases/find-similar-tracks';
+import { FindSimilarTracksService } from '../../tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from '../../tracks/services/find-minimized-track.service';
 import { FindMinimizedTrack } from '../../tracks/services/useCases/find-minimized-track';
 import { ValidateProfileById } from './useCases/validate-profile-by-id';
 import { ValidateProfileByIdService } from './validate-profile-by-id.service';
+import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
   findPlaylistTracksByIdService: FindPlaylistTracksById;
-  validateSimilarTracksService: ValidateSimilarTracks;
+  validateSimilarTracksService: FindSimilarTracks;
   findMinimizedTrackService: FindMinimizedTrack;
   validateProfileByIdService: ValidateProfileById;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
     findPlaylistTracksByIdService: FindPlaylistTracksByIdService,
-    validateSimilarTracksService: ValidateSimilarTracksService,
+    validateSimilarTracksService: FindSimilarTracksService,
     findMinimizedTrackService: FindMinimizedTrackService,
     validateProfileByIdService: ValidateProfileByIdService,
   ) {
@@ -99,7 +100,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     );
 
     const probableMatches = advanced
-      ? await this.validateSimilarTracksService.validate(
+      ? await this.validateSimilarTracksService.find(
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
         )
@@ -116,10 +117,10 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       secondProfileTrackIdsSet.size -
       sameTracks.size;
 
-    const matches: string[] = [];
+    const matches: MinimizedTrack[] = [];
     for (const track of sameTracks) {
       const minimizedTrack = await this.findMinimizedTrackService.find(track);
-      matches.push(`${minimizedTrack.artist} - ${minimizedTrack.track}`);
+      matches.push(minimizedTrack);
     }
 
     const profileComparison: ProfileComparison = {

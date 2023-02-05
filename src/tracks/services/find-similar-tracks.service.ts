@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ValidateSimilarTracks } from './useCases/validate-similar-tracks';
+import { FindSimilarTracks } from './useCases/find-similar-tracks';
 import axios from 'axios';
 import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
 import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
@@ -7,17 +7,17 @@ import { DetailedTrack } from '../models/detailed-track.model';
 import { MinimizedTrack } from '../models/minimized-track.model';
 
 @Injectable()
-export class ValidateSimilarTracksService implements ValidateSimilarTracks {
+export class FindSimilarTracksService implements FindSimilarTracks {
   url = 'https://api.spotify.com/v1/tracks/';
   getAccessTokenService: GetAccessToken;
 
   constructor(getAccessTokenService: GetAccessTokenService) {
     this.getAccessTokenService = getAccessTokenService;
   }
-  async validate(
+  async find(
     firstProfileTracks: string[],
     secondProfileTracks: string[],
-  ): Promise<string[]> {
+  ): Promise<MinimizedTrack[]> {
     const authorization = await this.getAccessTokenService.get();
     const batchesOfFirstProfileTracks: string[][] = [];
 
@@ -80,7 +80,7 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
           href: track.href,
         };
       });
-    const similarTracks: string[] = [];
+    const similarTracks: MinimizedTrack[] = [];
 
     const largestProfileTracks =
       minimizedFirstProfileTracks.length > minimizedSecondProfileTracks.length
@@ -98,16 +98,9 @@ export class ValidateSimilarTracksService implements ValidateSimilarTracks {
       );
       if (similarTrack) {
         if (this.compareTracks(currentTrack, similarTrack)) {
-          similarTracks.push(`${currentTrack.artist} - ${currentTrack.track}`);
+          similarTracks.push(similarTrack);
         }
       }
-    });
-
-    similarTracks.forEach((track, index) => {
-      similarTracks[index] = track.replace(
-        'https://api.spotify.com/v1/tracks/',
-        '',
-      );
     });
 
     return similarTracks;
