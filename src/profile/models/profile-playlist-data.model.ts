@@ -1,4 +1,4 @@
-export interface PlaylistData {
+export interface ProfilePlaylistData {
   href: string;
   limit: number;
   next: string;
