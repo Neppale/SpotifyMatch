@@ -48,16 +48,13 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
     );
 
-    const isFirstProfileValid = await this.validateProfileByIdService.validate(
-      firstProfile,
-    );
+    const [isFirstProfileValid, isSecondProfileValid] = await Promise.all([
+      this.validateProfileByIdService.validate(firstProfile),
+      this.validateProfileByIdService.validate(secondProfile),
+    ]);
     if (!isFirstProfileValid) {
       throw new BadRequestException('First profile id is invalid');
     }
-
-    const isSecondProfileValid = await this.validateProfileByIdService.validate(
-      secondProfile,
-    );
     if (!isSecondProfileValid) {
       throw new BadRequestException('Second profile id is invalid');
     }
