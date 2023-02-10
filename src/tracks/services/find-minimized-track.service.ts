@@ -24,6 +24,7 @@ export class FindMinimizedTrackService implements FindMinimizedTrack {
 
     const trackData: DetailedTrack = response.data;
     const minimizedTrack: MinimizedTrack = {
+      artistId: trackData.artists[0].id,
       track: trackData.name,
       artist: trackData.artists[0].name,
       album: trackData.album.name,
