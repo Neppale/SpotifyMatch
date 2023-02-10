@@ -7,9 +7,16 @@ import { FindPlaylistTracksByIdService } from '../playlist/services/find-playlis
 import { FindSimilarTracksService } from '../tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from 'src/tracks/services/find-minimized-track.service';
 import { ValidateProfileByIdService } from './services/validate-profile-by-id.service';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core/constants';
 
 @Module({
-  imports: [],
+  imports: [
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 15,
+    }),
+  ],
   controllers: [ProfileController],
   providers: [
     FindPlaylistIdsByUserIdService,
@@ -19,6 +26,10 @@ import { ValidateProfileByIdService } from './services/validate-profile-by-id.se
     FindSimilarTracksService,
     FindMinimizedTrackService,
     ValidateProfileByIdService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
