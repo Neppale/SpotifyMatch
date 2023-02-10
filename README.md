@@ -1,73 +1,82 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# SpotifyMatch
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+SpotifyMatch is a Spotify profile comparison API that allows users to compare their Spotify profiles to see how compatible they are when it comes to their music. The API has one endpoint: `/compare`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Request
 
-## Description
+### Endpoint
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+`POST /compare`
 
-## Installation
+### Body
 
-```bash
-$ npm install
+The body of the request should contain the following properties:
+
+- `firstProfile` (required): the Spotify id of the first profile.
+- `secondProfile` (required): the Spotify id of the second profile.
+- `advanced` (optional): a boolean to indicate if the API should find similar tracks instead of just strictly equal tracks. If not provided, the API will assume advanced is false.
+
+### Response
+
+The API returns a JSON object with the following properties:
+
+- `sameTracks`: the number of tracks that are the same between the two profiles.
+- `totalTracks`: the total number of tracks in both profiles.
+- `percentage`: the percentage of tracks that are the same.
+- `matches`: an array of minimized tracks that are the same between the two profiles.
+- `probableMatches` (optional): an array of minimized tracks that are likely to be the same between the two profiles, if advanced is set to true.
+- `totalProbableMatches` (optional): the total number of probable matches, if advanced is set to true.
+- `verdict`: a string value indicating the overall compatibility of the two profiles, based on the value of percentage. The possible values are:
+  Perfect Match!: if percentage is equal to 100.
+  Good Match!: if percentage is between 81 and 99.
+  Bad Match!: if percentage is between 50 and 80.
+  No Match!: if percentage is below 50.
+
+## Types
+
+The API uses the following types:
+
+### ProfileComparison
+
+The type of the response object.
+
+```
+interface ProfileComparison {
+sameTracks: number;
+totalTracks: number;
+percentage: number;
+matches: MinimizedTrack[];
+probableMatches?: MinimizedTrack[];
+totalProbableMatches?: number;
+verdict: Verdict;
+}
 ```
 
-## Running the app
+### MinimizedTrack
 
-```bash
-# development
-$ npm run start
+A minimized track representation that contains only the necessary information for comparison.
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+interface MinimizedTrack {
+  artistId: string;
+  artist: string;
+  track: string;
+  album: string;
+  releaseDate: string;
+  length: number;
+  href: string;
+}
 ```
 
-## Test
+### Verdict
 
-```bash
-# unit tests
-$ npm run test
+An enum with the following values:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+enum Verdict {
+PERFECT_MATCH = 'Perfect Match!',
+GOOD_MATCH = 'Good Match!',
+BAD_MATCH = 'Bad Match!',
+NO_MATCH = 'No Match!',
+}
+```
