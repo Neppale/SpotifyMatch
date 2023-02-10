@@ -5,7 +5,7 @@ import { ProfileComparison } from './models/profile-comparison.model';
 import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
 import { CompareProfilesById } from './services/useCases/compare-profiles-by-id';
 
-@Controller()
+@Controller('compare')
 export class ProfileController {
   compareProfilesByIdService: CompareProfilesById;
 
