@@ -69,16 +69,30 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       ]);
 
     const firstProfileTrackIds: string[] = [];
+    const firstProfileTrackIdsPromises = [];
     for (const playlistId of firstProfilePlaylistIds) {
-      const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
-      firstProfileTrackIds.push(...tracks);
+      const promise = this.findPlaylistTracksByIdService.find(playlistId);
+      firstProfileTrackIdsPromises.push(promise);
     }
+    const firstProfileTrackIdsResults = await Promise.all(
+      firstProfileTrackIdsPromises,
+    );
+    firstProfileTrackIdsResults.forEach((currentResult) =>
+      firstProfileTrackIds.push(...currentResult),
+    );
 
     const secondProfileTrackIds: string[] = [];
+    const secondProfileTrackIdsPromises = [];
     for (const playlistId of secondProfilePlaylistIds) {
-      const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
-      secondProfileTrackIds.push(...tracks);
+      const promise = this.findPlaylistTracksByIdService.find(playlistId);
+      secondProfileTrackIdsPromises.push(promise);
     }
+    const secondProfileTrackIdsResults = await Promise.all(
+      secondProfileTrackIdsPromises,
+    );
+    secondProfileTrackIdsResults.forEach((currentResult) =>
+      secondProfileTrackIds.push(...currentResult),
+    );
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
@@ -118,12 +132,12 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       sameTracks.size;
 
     const matches: MinimizedTrack[] = [];
-    const promises = [];
+    const minizedTrackPromises = [];
     for (const track of sameTracks) {
       const promise = this.findMinimizedTrackService.find(track);
-      promises.push(promise);
+      minizedTrackPromises.push(promise);
     }
-    const minimizedTracks = await Promise.all(promises);
+    const minimizedTracks = await Promise.all(minizedTrackPromises);
     matches.push(...minimizedTracks);
 
     const profileComparison: ProfileComparison = {
