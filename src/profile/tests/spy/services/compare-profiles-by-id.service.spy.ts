@@ -14,7 +14,17 @@ export class CompareProfilesByIdServiceSpy implements CompareProfilesById {
   validateSimilarTracksService: FindSimilarTracksService;
   result: ProfileComparison = {
     sameTracks: 1,
-    matches: [''],
+    matches: [
+      {
+        album: 'album',
+        artist: 'artist',
+        artistId: 'artistId',
+        href: 'href',
+        length: 1,
+        releaseDate: 'releaseDate',
+        track: 'track',
+      },
+    ],
     percentage: 100,
     totalTracks: 1,
     verdict: Verdict.PERFECT_MATCH,
