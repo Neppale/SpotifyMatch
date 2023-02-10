@@ -129,6 +129,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       matches,
       sameTracks: sameTracks.size,
       probableMatches,
+      totalProbableMatches: probableMatches?.length,
       totalTracks,
     };
 

@@ -6,6 +6,7 @@ export class ProfileComparison {
   percentage: number;
   matches: MinimizedTrack[];
   probableMatches?: MinimizedTrack[];
+  totalProbableMatches?: number;
   verdict: Verdict;
 }
 

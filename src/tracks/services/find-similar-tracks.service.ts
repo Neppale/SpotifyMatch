@@ -5,6 +5,7 @@ import { GetAccessTokenService } from '../../utils/auth/services/get-access-toke
 import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
 import { DetailedTrack } from '../models/detailed-track.model';
 import { MinimizedTrack } from '../models/minimized-track.model';
+import { ArtistTracks } from '../models/artist-tracks.model';
 
 @Injectable()
 export class FindSimilarTracksService implements FindSimilarTracks {
@@ -41,6 +42,7 @@ export class FindSimilarTracksService implements FindSimilarTracks {
     const minimizedFirstProfileTracks: MinimizedTrack[] =
       firstProfileTracksData.map((track) => {
         return {
+          artistId: track.artists[0]?.id,
           artist: track.artists[0]?.name,
           track: track.name,
           album: track.album.name,
@@ -49,6 +51,20 @@ export class FindSimilarTracksService implements FindSimilarTracks {
           href: track.href,
         };
       });
+
+    const firstProfileArtistTracks = new Map<string, ArtistTracks>();
+    minimizedFirstProfileTracks.forEach((track) => {
+      if (firstProfileArtistTracks.has(track.artistId)) {
+        const artistTracks = firstProfileArtistTracks.get(track.artistId);
+        artistTracks.tracks.push(track);
+        firstProfileArtistTracks.set(track.artistId, artistTracks);
+      } else {
+        firstProfileArtistTracks.set(track.artistId, {
+          artistId: track.artistId,
+          tracks: [track],
+        });
+      }
+    });
 
     const batchesOfSecondProfileTracks: string[][] = [];
 
@@ -72,6 +88,7 @@ export class FindSimilarTracksService implements FindSimilarTracks {
     const minimizedSecondProfileTracks: MinimizedTrack[] =
       secondProfileTracksData.map((track) => {
         return {
+          artistId: track.artists[0]?.id,
           artist: track.artists[0]?.name,
           track: track.name,
           album: track.album.name,
@@ -80,26 +97,47 @@ export class FindSimilarTracksService implements FindSimilarTracks {
           href: track.href,
         };
       });
+
+    const secondProfileArtistTracks = new Map<string, ArtistTracks>();
+    minimizedSecondProfileTracks.forEach((track) => {
+      if (secondProfileArtistTracks.has(track.artistId)) {
+        const artistTracks = secondProfileArtistTracks.get(track.artistId);
+        artistTracks.tracks.push(track);
+        secondProfileArtistTracks.set(track.artistId, artistTracks);
+      } else {
+        secondProfileArtistTracks.set(track.artistId, {
+          artistId: track.artistId,
+          tracks: [track],
+        });
+      }
+    });
+
     const similarTracks: MinimizedTrack[] = [];
+    const smallestUser =
+      firstProfileArtistTracks.size < secondProfileArtistTracks.size
+        ? firstProfileArtistTracks
+        : secondProfileArtistTracks;
 
-    const largestProfileTracks =
-      minimizedFirstProfileTracks.length > minimizedSecondProfileTracks.length
-        ? minimizedFirstProfileTracks
-        : minimizedSecondProfileTracks;
+    const biggestUser =
+      firstProfileArtistTracks.size > secondProfileArtistTracks.size
+        ? firstProfileArtistTracks
+        : secondProfileArtistTracks;
 
-    const smallestProfileTracks =
-      minimizedFirstProfileTracks.length < minimizedSecondProfileTracks.length
-        ? minimizedFirstProfileTracks
-        : minimizedSecondProfileTracks;
-
-    largestProfileTracks.forEach((currentTrack) => {
-      const similarTrack = smallestProfileTracks.find(
-        (foundTrack) => currentTrack.track === foundTrack.track,
-      );
-      if (similarTrack) {
-        if (this.compareTracks(currentTrack, similarTrack)) {
-          similarTracks.push(similarTrack);
-        }
+    smallestUser.forEach((artistTracks) => {
+      if (biggestUser.has(artistTracks.artistId)) {
+        const firstProfileArtistTracks = artistTracks.tracks;
+        const secondProfileArtistTracks = biggestUser.get(
+          artistTracks.artistId,
+        ).tracks;
+        firstProfileArtistTracks.forEach((firstTrack) => {
+          secondProfileArtistTracks.forEach((secondTrack) => {
+            if (this.compareTracks(firstTrack, secondTrack))
+              if (
+                !similarTracks.some((track) => track.href === firstTrack.href)
+              )
+                similarTracks.push(firstTrack);
+          });
+        });
       }
     });
 

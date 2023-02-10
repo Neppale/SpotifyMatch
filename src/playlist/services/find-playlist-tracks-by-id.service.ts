@@ -25,7 +25,7 @@ export class FindPlaylistTracksByIdService implements FindPlaylistTracksById {
     if (!playlistData.tracks) return [];
 
     console.log(
-      `Visualizing playlist ${playlistData.name} by ${playlistData.owner.display_name}...`,
+      `Found playlist ${playlistData.name} by ${playlistData.owner.display_name} with ${playlistData.tracks.total} tracks.`,
     );
 
     const hrefTracks: string[] = playlistData.tracks.items.map((item) => {
