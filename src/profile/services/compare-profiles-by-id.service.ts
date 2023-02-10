@@ -118,10 +118,13 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       sameTracks.size;
 
     const matches: MinimizedTrack[] = [];
+    const promises = [];
     for (const track of sameTracks) {
-      const minimizedTrack = await this.findMinimizedTrackService.find(track);
-      matches.push(minimizedTrack);
+      const promise = this.findMinimizedTrackService.find(track);
+      promises.push(promise);
     }
+    const minimizedTracks = await Promise.all(promises);
+    matches.push(...minimizedTracks);
 
     const profileComparison: ProfileComparison = {
       percentage,
