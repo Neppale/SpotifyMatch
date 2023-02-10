@@ -117,16 +117,12 @@ export class CompareProfilesByIdService implements CompareProfilesById {
         )
       : undefined;
 
-    const percentage = Math.round(
-      (sameTracks.size /
-        (firstProfileTrackIdsSet.size + secondProfileTrackIdsSet.size)) *
-        100,
-    );
-    const verdict = getVerdict(percentage);
     const totalTracks =
       firstProfileTrackIdsSet.size +
       secondProfileTrackIdsSet.size -
       sameTracks.size;
+    const percentage = Math.round((sameTracks.size / totalTracks) * 100);
+    const verdict = getVerdict(percentage);
 
     const matches: MinimizedTrack[] = [];
     const minizedTrackPromises = [];
