@@ -4,7 +4,7 @@ import {
   ProfileComparison,
   Verdict,
 } from '../../../../profile/models/profile-comparison.model';
-import { ProfileParameters } from '../../../../profile/models/profile-parameters';
+import { ProfileParameters } from '../../../models/profile.parameters';
 import { CompareProfilesById } from '../../../../profile/services/useCases/compare-profiles-by-id';
 import { FindSimilarTracksService } from '../../../../tracks/services/find-similar-tracks.service';
 

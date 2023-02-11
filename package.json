@@ -76,6 +76,7 @@
       "/src/main.ts",
       ".module.ts",
       ".model.ts",
+      ".parameters.ts",
       ".spy.ts"
     ],
     "coverageDirectory": "../coverage",
