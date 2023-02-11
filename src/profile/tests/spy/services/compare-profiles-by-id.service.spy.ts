@@ -1,5 +1,5 @@
 import { FindPlaylistIdsByUserIdService } from '../../../../playlist/services/find-playlist-ids-by-user-id.service';
-import { FindPlaylistTracksByIdService } from '../../../../playlist/services/find-playlist-tracks-by-id.service';
+import { FindTracksByPlaylistIdsService } from '../../../../playlist/services/find-tracks-by-playlist-ids.service';
 import {
   ProfileComparison,
   Verdict,
@@ -10,7 +10,7 @@ import { FindSimilarTracksService } from '../../../../tracks/services/find-simil
 
 export class CompareProfilesByIdServiceSpy implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService;
-  findPlaylistTracksByIdService: FindPlaylistTracksByIdService;
+  findPlaylistTracksByIdService: FindTracksByPlaylistIdsService;
   validateSimilarTracksService: FindSimilarTracksService;
   result: ProfileComparison = {
     sameTracks: 1,
