@@ -1,9 +1,4 @@
-import {
-  CacheInterceptor,
-  Controller,
-  Get,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { Payload } from '@nestjs/microservices';
 import { ProfileParameters } from './models/profile-parameters';
 import { ProfileComparison } from './models/profile-comparison.model';
