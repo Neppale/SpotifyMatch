@@ -24,17 +24,22 @@ export class FindPlaylistTracksByIdService implements FindPlaylistTracksById {
     const playlistData: DetailedPlaylist = response.data;
     if (!playlistData.tracks) return [];
 
-    const hrefTracks: string[] = playlistData.tracks.items.map(
-      (item) => item.track?.href,
+    console.log(
+      `Found playlist ${playlistData.name} by ${playlistData.owner.display_name} with ${playlistData.tracks.total} tracks.`,
     );
 
-    hrefTracks.forEach((href, index) => {
-      hrefTracks[index] = href?.replace(
+    const hrefTracks: string[] = playlistData.tracks.items.map((item) => {
+      return item.track?.href;
+    });
+    const filteredTracks = hrefTracks.filter((track) => track);
+
+    filteredTracks.forEach((href, index) => {
+      filteredTracks[index] = href.replace(
         'https://api.spotify.com/v1/tracks/',
         '',
       );
     });
 
-    return hrefTracks;
+    return filteredTracks;
   }
 }

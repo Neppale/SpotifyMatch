@@ -1,9 +1,12 @@
+import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
+
 export class ProfileComparison {
   sameTracks: number;
   totalTracks: number;
   percentage: number;
-  matches: string[];
-  probableMatches?: string[];
+  matches: MinimizedTrack[];
+  probableMatches?: MinimizedTrack[];
+  totalProbableMatches?: number;
   verdict: Verdict;
 }
 

@@ -6,30 +6,57 @@ import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-p
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
 import { FindPlaylistTracksByIdService } from '../../playlist/services/find-playlist-tracks-by-id.service';
 import { FindPlaylistTracksById } from '../../playlist/services/useCases/find-playlist-tracks-by-id';
-import { ValidateSimilarTracks } from '../../tracks/services/useCases/validate-similar-tracks';
-import { ValidateSimilarTracksService } from '../../tracks/services/validate-similar-tracks.service';
+import { FindSimilarTracks } from '../../tracks/services/useCases/find-similar-tracks';
+import { FindSimilarTracksService } from '../../tracks/services/find-similar-tracks.service';
+import { FindMinimizedTrackService } from '../../tracks/services/find-minimized-track.service';
+import { FindMinimizedTrack } from '../../tracks/services/useCases/find-minimized-track';
+import { ValidateProfileById } from './useCases/validate-profile-by-id';
+import { ValidateProfileByIdService } from './validate-profile-by-id.service';
+import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
   findPlaylistTracksByIdService: FindPlaylistTracksById;
-  validateSimilarTracksService: ValidateSimilarTracks;
+  validateSimilarTracksService: FindSimilarTracks;
+  findMinimizedTrackService: FindMinimizedTrack;
+  validateProfileByIdService: ValidateProfileById;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
     findPlaylistTracksByIdService: FindPlaylistTracksByIdService,
-    validateSimilarTracksService: ValidateSimilarTracksService,
+    validateSimilarTracksService: FindSimilarTracksService,
+    findMinimizedTrackService: FindMinimizedTrackService,
+    validateProfileByIdService: ValidateProfileByIdService,
   ) {
     this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
     this.findPlaylistTracksByIdService = findPlaylistTracksByIdService;
     this.validateSimilarTracksService = validateSimilarTracksService;
+    this.findMinimizedTrackService = findMinimizedTrackService;
+    this.validateProfileByIdService = validateProfileByIdService;
   }
   async compare({
     firstProfile,
     secondProfile,
+    advanced,
   }: ProfileParameters): Promise<ProfileComparison> {
     if (!firstProfile || !secondProfile) {
       throw new BadRequestException('Missing profile id');
+    }
+
+    console.log(
+      `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
+    );
+
+    const [isFirstProfileValid, isSecondProfileValid] = await Promise.all([
+      this.validateProfileByIdService.validate(firstProfile),
+      this.validateProfileByIdService.validate(secondProfile),
+    ]);
+    if (!isFirstProfileValid) {
+      throw new BadRequestException('First profile id is invalid');
+    }
+    if (!isSecondProfileValid) {
+      throw new BadRequestException('Second profile id is invalid');
     }
 
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
@@ -39,18 +66,30 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       ]);
 
     const firstProfileTrackIds: string[] = [];
+    const firstProfileTrackIdsPromises = [];
     for (const playlistId of firstProfilePlaylistIds) {
-      const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
-      firstProfileTrackIds.push(...tracks);
+      const promise = this.findPlaylistTracksByIdService.find(playlistId);
+      firstProfileTrackIdsPromises.push(promise);
     }
-    firstProfilePlaylistIds.filter((track) => track);
+    const firstProfileTrackIdsResults = await Promise.all(
+      firstProfileTrackIdsPromises,
+    );
+    firstProfileTrackIdsResults.forEach((currentResult) =>
+      firstProfileTrackIds.push(...currentResult),
+    );
 
     const secondProfileTrackIds: string[] = [];
+    const secondProfileTrackIdsPromises = [];
     for (const playlistId of secondProfilePlaylistIds) {
-      const tracks = await this.findPlaylistTracksByIdService.find(playlistId);
-      secondProfileTrackIds.push(...tracks);
+      const promise = this.findPlaylistTracksByIdService.find(playlistId);
+      secondProfileTrackIdsPromises.push(promise);
     }
-    secondProfilePlaylistIds.filter((track) => track);
+    const secondProfileTrackIdsResults = await Promise.all(
+      secondProfileTrackIdsPromises,
+    );
+    secondProfileTrackIdsResults.forEach((currentResult) =>
+      secondProfileTrackIds.push(...currentResult),
+    );
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
@@ -63,33 +102,46 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       ),
     );
 
-    for (const track of sameTracks) {
-      firstProfileTrackIdsSet.delete(track);
-      secondProfileTrackIdsSet.delete(track);
-
-      firstProfileTrackIds.splice(firstProfileTrackIds.indexOf(track), 1);
-      secondProfileTrackIds.splice(secondProfileTrackIds.indexOf(track), 1);
-    }
-
-    const probableMatches = await this.validateSimilarTracksService.validate(
-      firstProfileTrackIds,
-      secondProfileTrackIds,
+    const remainingFirstProfileTracks = [...firstProfileTrackIdsSet].filter(
+      (currentTrack) => !sameTracks.has(currentTrack),
     );
 
-    const percentage =
-      Math.round((sameTracks.size / firstProfileTrackIdsSet.size) * 100) || 0;
-    const verdict = getVerdict(percentage);
+    const remainingSecondProfileTracks = [...secondProfileTrackIdsSet].filter(
+      (currentTrack) => !sameTracks.has(currentTrack),
+    );
+
+    const probableMatches = advanced
+      ? await this.validateSimilarTracksService.find(
+          remainingFirstProfileTracks,
+          remainingSecondProfileTracks,
+        )
+      : undefined;
+
     const totalTracks =
       firstProfileTrackIdsSet.size +
       secondProfileTrackIdsSet.size -
       sameTracks.size;
+    const percentage = Math.round(
+      ((sameTracks.size + (probableMatches?.length || 0)) / totalTracks) * 100,
+    );
+    const verdict = getVerdict(percentage);
+
+    const matches: MinimizedTrack[] = [];
+    const minizedTrackPromises = [];
+    for (const track of sameTracks) {
+      const promise = this.findMinimizedTrackService.find(track);
+      minizedTrackPromises.push(promise);
+    }
+    const minimizedTracks = await Promise.all(minizedTrackPromises);
+    matches.push(...minimizedTracks);
 
     const profileComparison: ProfileComparison = {
       percentage,
       verdict,
-      matches: [...sameTracks],
+      matches,
       sameTracks: sameTracks.size,
       probableMatches,
+      totalProbableMatches: probableMatches?.length,
       totalTracks,
     };
 

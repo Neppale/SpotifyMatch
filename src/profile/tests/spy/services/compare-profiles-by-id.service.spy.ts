@@ -6,15 +6,25 @@ import {
 } from '../../../../profile/models/profile-comparison.model';
 import { ProfileParameters } from '../../../../profile/models/profile-parameters';
 import { CompareProfilesById } from '../../../../profile/services/useCases/compare-profiles-by-id';
-import { ValidateSimilarTracksService } from '../../../../tracks/services/validate-similar-tracks.service';
+import { FindSimilarTracksService } from '../../../../tracks/services/find-similar-tracks.service';
 
 export class CompareProfilesByIdServiceSpy implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService;
   findPlaylistTracksByIdService: FindPlaylistTracksByIdService;
-  validateSimilarTracksService: ValidateSimilarTracksService;
+  validateSimilarTracksService: FindSimilarTracksService;
   result: ProfileComparison = {
     sameTracks: 1,
-    matches: [''],
+    matches: [
+      {
+        album: 'album',
+        artist: 'artist',
+        artistId: 'artistId',
+        href: 'href',
+        length: 1,
+        releaseDate: 'releaseDate',
+        track: 'track',
+      },
+    ],
     percentage: 100,
     totalTracks: 1,
     verdict: Verdict.PERFECT_MATCH,
