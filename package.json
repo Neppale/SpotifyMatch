@@ -1,5 +1,5 @@
 {
-  "name": "spotify-lovers",
+  "name": "spotify-match",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/throttler": "^4.0.0",
     "axios": "^1.3.2",
+    "cache-manager": "^4.0.0",
     "dotenv": "^16.0.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
