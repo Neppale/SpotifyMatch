@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { FindPlaylistTracksByIdService } from '../../../playlist/services/find-playlist-tracks-by-id.service';
 import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
+import { detailedPlaylistMock } from '../../../playlist/models/detailed-playlist.model';
 
 type SutOutput = {
   sut: FindPlaylistTracksByIdService;
@@ -22,15 +23,7 @@ describe('FindPlaylistTracksByIdService', () => {
     jest.spyOn(axios, 'get').mockImplementationOnce(() => {
       return Promise.resolve({
         data: {
-          tracks: {
-            items: [
-              {
-                track: {
-                  href: 'https://api.spotify.com/v1/tracks/trackId',
-                },
-              },
-            ],
-          },
+          ...detailedPlaylistMock,
         },
       });
     });
@@ -56,19 +49,11 @@ describe('FindPlaylistTracksByIdService', () => {
     jest.spyOn(axios, 'get').mockImplementationOnce(() => {
       return Promise.resolve({
         data: {
-          tracks: {
-            items: [
-              {
-                track: {
-                  href: 'https://api.spotify.com/v1/tracks/trackId',
-                },
-              },
-            ],
-          },
+          ...detailedPlaylistMock,
         },
       });
     });
     const trackIds = await sut.find('id');
-    expect(trackIds).toEqual(['trackId']);
+    expect(trackIds).toEqual(['1AbCdEfG']);
   });
 });

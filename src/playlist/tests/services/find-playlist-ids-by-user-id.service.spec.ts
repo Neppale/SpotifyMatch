@@ -41,7 +41,7 @@ describe('FindPlaylistIdsByUserIdService', () => {
     jest.spyOn(axios, 'get').mockImplementationOnce(() => {
       return Promise.resolve({
         data: {
-          items: [],
+          items: undefined,
         },
       });
     });
