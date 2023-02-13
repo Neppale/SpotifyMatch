@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ProfileParameters } from '../models/profile-parameters';
+import { ProfileParameters } from '../models/profile.parameters';
 import { CompareProfilesById } from './useCases/compare-profiles-by-id';
 import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
 import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-playlist-ids-by-user-id';
@@ -17,21 +17,21 @@ import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
-  findPlaylistTracksByIdService: FindTrackIdsByPlaylistIds;
-  validateSimilarTracksService: FindSimilarTracks;
+  findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIds;
+  findSimilarTracksService: FindSimilarTracks;
   findMinimizedTrackService: FindMinimizedTrack;
   validateProfileByIdService: ValidateProfileById;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
-    findPlaylistTracksByIdService: FindTrackIdsByPlaylistIdsService,
-    validateSimilarTracksService: FindSimilarTracksService,
+    findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIdsService,
+    findSimilarTracksService: FindSimilarTracksService,
     findMinimizedTrackService: FindMinimizedTrackService,
     validateProfileByIdService: ValidateProfileByIdService,
   ) {
     this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
-    this.findPlaylistTracksByIdService = findPlaylistTracksByIdService;
-    this.validateSimilarTracksService = validateSimilarTracksService;
+    this.findTrackIdsByPlaylistIdsService = findTrackIdsByPlaylistIdsService;
+    this.findSimilarTracksService = findSimilarTracksService;
     this.findMinimizedTrackService = findMinimizedTrackService;
     this.validateProfileByIdService = validateProfileByIdService;
   }
@@ -61,8 +61,8 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       ]);
 
     const [firstProfileTrackIds, secondProfileTrackIds] = await Promise.all([
-      this.findPlaylistTracksByIdService.find(firstProfilePlaylistIds),
-      this.findPlaylistTracksByIdService.find(secondProfilePlaylistIds),
+      this.findTrackIdsByPlaylistIdsService.find(firstProfilePlaylistIds),
+      this.findTrackIdsByPlaylistIdsService.find(secondProfilePlaylistIds),
     ]);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
@@ -85,7 +85,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     );
 
     const probableMatches = advanced
-      ? await this.validateSimilarTracksService.find(
+      ? await this.findSimilarTracksService.find(
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
         )
@@ -95,9 +95,14 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       firstProfileTrackIdsSet.size +
       secondProfileTrackIdsSet.size -
       sameTracks.size;
-    const percentage = Math.round(
-      ((sameTracks.size + (probableMatches?.length || 0)) / totalTracks) * 100,
-    );
+    const percentage =
+      totalTracks === 0
+        ? 0
+        : Math.round(
+            ((sameTracks.size + (probableMatches?.length || 0)) / totalTracks) *
+              100,
+          );
+
     const verdict = getVerdict(percentage);
 
     const matches: MinimizedTrack[] = [];

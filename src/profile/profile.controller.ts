@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { Payload } from '@nestjs/microservices';
-import { ProfileParameters } from './models/profile-parameters';
+import { ProfileParameters } from './models/profile.parameters';
 import { ProfileComparison } from './models/profile-comparison.model';
 import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
 import { CompareProfilesById } from './services/useCases/compare-profiles-by-id';

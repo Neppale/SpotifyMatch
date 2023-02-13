@@ -144,7 +144,7 @@ export class FindSimilarTracksService implements FindSimilarTracks {
     return similarTracks;
   }
 
-  private compareTracks(
+  compareTracks(
     firstTrack: MinimizedTrack,
     secondTrack: MinimizedTrack,
   ): boolean {
