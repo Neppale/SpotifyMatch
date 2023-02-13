@@ -1,8 +1,11 @@
-import { FindPlaylistIdsByUserId } from '../../../../playlist/services/useCases/find-playlist-ids-by-user-id';
+import { GetAccessTokenService } from 'src/utils/auth/services/get-access-token.service';
+import { FindPlaylistIdsByUserIdService } from 'src/playlist/services/find-playlist-ids-by-user-id.service';
 
 export class FindPlaylistIdsByUserIdServiceSpy
-  implements FindPlaylistIdsByUserId
+  implements FindPlaylistIdsByUserIdService
 {
+  url: string;
+  getAccessTokenService: GetAccessTokenService;
   result: string[] = [];
   count = 0;
 

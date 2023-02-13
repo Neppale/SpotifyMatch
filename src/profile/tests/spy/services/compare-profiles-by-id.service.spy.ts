@@ -16,8 +16,8 @@ export class CompareProfilesByIdServiceSpy
   findMinimizedTrackService: FindMinimizedTrack;
   validateProfileByIdService: ValidateProfileById;
   findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService;
-  findPlaylistTracksByIdService: FindTrackIdsByPlaylistIdsService;
-  validateSimilarTracksService: FindSimilarTracksService;
+  findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIdsService;
+  findSimilarTracksService: FindSimilarTracksService;
 
   result: ProfileComparison = {
     sameTracks: 1,
