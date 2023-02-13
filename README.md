@@ -1,6 +1,7 @@
 # SpotifyMatch
 
 [![Testing workflow](https://github.com/Neppale/SpotifyMatch/actions/workflows/testing.yaml/badge.svg?branch=develop)](https://github.com/Neppale/SpotifyMatch/actions/workflows/testing.yaml)
+[![codecov](https://codecov.io/gh/Neppale/SpotifyMatch/branch/develop/graph/badge.svg?token=WXoLnRSyES)](https://codecov.io/gh/Neppale/SpotifyMatch)
 
 SpotifyMatch is a Spotify profile comparison API that allows users to compare their Spotify profiles to see how compatible they are when it comes to their music. The API has one endpoint: `/compare`.
 
