@@ -25,7 +25,7 @@ interface Tracks {
   items: Item[];
 }
 
-interface Item {
+export interface Item {
   added_at: string;
   added_by: Addedby;
   is_local: boolean;

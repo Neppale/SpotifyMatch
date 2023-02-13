@@ -4,8 +4,8 @@ import { CompareProfilesById } from './useCases/compare-profiles-by-id';
 import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
 import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-playlist-ids-by-user-id';
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
-import { FindPlaylistTracksByIdService } from '../../playlist/services/find-playlist-tracks-by-id.service';
-import { FindPlaylistTracksById } from '../../playlist/services/useCases/find-playlist-tracks-by-id';
+import { FindTrackIdsByPlaylistIdsService } from '../../playlist/services/find-track-ids-by-playlist-ids.service';
+import { FindTrackIdsByPlaylistIds } from '../../playlist/services/useCases/find-track-ids-by-playlist-ids';
 import { FindSimilarTracks } from '../../tracks/services/useCases/find-similar-tracks';
 import { FindSimilarTracksService } from '../../tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from '../../tracks/services/find-minimized-track.service';
@@ -17,14 +17,14 @@ import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
-  findPlaylistTracksByIdService: FindPlaylistTracksById;
+  findPlaylistTracksByIdService: FindTrackIdsByPlaylistIds;
   validateSimilarTracksService: FindSimilarTracks;
   findMinimizedTrackService: FindMinimizedTrack;
   validateProfileByIdService: ValidateProfileById;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
-    findPlaylistTracksByIdService: FindPlaylistTracksByIdService,
+    findPlaylistTracksByIdService: FindTrackIdsByPlaylistIdsService,
     validateSimilarTracksService: FindSimilarTracksService,
     findMinimizedTrackService: FindMinimizedTrackService,
     validateProfileByIdService: ValidateProfileByIdService,
@@ -43,11 +43,6 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     if (!firstProfile || !secondProfile) {
       throw new BadRequestException('Missing profile id');
     }
-
-    console.log(
-      `Initializing comparison between ${firstProfile} and ${secondProfile}..`,
-    );
-
     const [isFirstProfileValid, isSecondProfileValid] = await Promise.all([
       this.validateProfileByIdService.validate(firstProfile),
       this.validateProfileByIdService.validate(secondProfile),
@@ -65,31 +60,10 @@ export class CompareProfilesByIdService implements CompareProfilesById {
         this.findPlaylistIdsByIdService.find(secondProfile),
       ]);
 
-    const firstProfileTrackIds: string[] = [];
-    const firstProfileTrackIdsPromises = [];
-    for (const playlistId of firstProfilePlaylistIds) {
-      const promise = this.findPlaylistTracksByIdService.find(playlistId);
-      firstProfileTrackIdsPromises.push(promise);
-    }
-    const firstProfileTrackIdsResults = await Promise.all(
-      firstProfileTrackIdsPromises,
-    );
-    firstProfileTrackIdsResults.forEach((currentResult) =>
-      firstProfileTrackIds.push(...currentResult),
-    );
-
-    const secondProfileTrackIds: string[] = [];
-    const secondProfileTrackIdsPromises = [];
-    for (const playlistId of secondProfilePlaylistIds) {
-      const promise = this.findPlaylistTracksByIdService.find(playlistId);
-      secondProfileTrackIdsPromises.push(promise);
-    }
-    const secondProfileTrackIdsResults = await Promise.all(
-      secondProfileTrackIdsPromises,
-    );
-    secondProfileTrackIdsResults.forEach((currentResult) =>
-      secondProfileTrackIds.push(...currentResult),
-    );
+    const [firstProfileTrackIds, secondProfileTrackIds] = await Promise.all([
+      this.findPlaylistTracksByIdService.find(firstProfilePlaylistIds),
+      this.findPlaylistTracksByIdService.find(secondProfilePlaylistIds),
+    ]);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
