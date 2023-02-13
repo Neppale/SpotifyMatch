@@ -1,4 +1,5 @@
 import { CacheService } from '../../../services/cache.service';
+import { Cache } from 'cache-manager';
 
 export class CacheServiceSpy implements CacheService {
   cacheManager: Cache;
