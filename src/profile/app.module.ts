@@ -3,7 +3,7 @@ import { ProfileController } from './profile.controller';
 import { FindPlaylistIdsByUserIdService } from '../playlist/services/find-playlist-ids-by-user-id.service';
 import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
 import { GetAccessTokenService } from '../utils/auth/services/get-access-token.service';
-import { FindTracksByPlaylistIdsService } from '../playlist/services/find-track-ids-by-playlist-ids.service';
+import { FindTrackIdsByPlaylistIdsService } from '../playlist/services/find-track-ids-by-playlist-ids.service';
 import { FindSimilarTracksService } from '../tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from 'src/tracks/services/find-minimized-track.service';
 import { ValidateProfileByIdService } from './services/validate-profile-by-id.service';
@@ -27,7 +27,7 @@ import { CacheService } from 'src/utils/cache/services/cache.service';
     FindPlaylistIdsByUserIdService,
     CompareProfilesByIdService,
     GetAccessTokenService,
-    FindTracksByPlaylistIdsService,
+    FindTrackIdsByPlaylistIdsService,
     FindSimilarTracksService,
     FindMinimizedTrackService,
     CacheService,
