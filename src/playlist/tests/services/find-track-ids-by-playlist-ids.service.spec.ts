@@ -1,23 +1,23 @@
 import axios from 'axios';
-import { FindPlaylistTracksByIdService } from '../../../playlist/services/find-playlist-tracks-by-id.service';
 import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
-import { detailedPlaylistMock } from '../../../playlist/models/detailed-playlist.model';
+import { detailedPlaylistMock } from '../../models/detailed-playlist.model';
+import { FindTrackIdsByPlaylistIdsService } from '../../services/find-track-ids-by-playlist-ids.service';
 
 type SutOutput = {
-  sut: FindPlaylistTracksByIdService;
+  sut: FindTrackIdsByPlaylistIdsService;
   getAccessTokenServiceSpy: GetAccessTokenServiceSpy;
 };
 
 const makeSut = (): SutOutput => {
   const getAccessTokenServiceSpy = new GetAccessTokenServiceSpy();
-  const sut = new FindPlaylistTracksByIdService(getAccessTokenServiceSpy);
+  const sut = new FindTrackIdsByPlaylistIdsService(getAccessTokenServiceSpy);
   return {
     sut,
     getAccessTokenServiceSpy,
   };
 };
 
-describe('FindPlaylistTracksByIdService', () => {
+describe('FindTrackIdsByPlaylistIdsService', () => {
   it('should call getAccessTokenService.get once', async () => {
     const { sut, getAccessTokenServiceSpy } = makeSut();
     jest.spyOn(axios, 'get').mockImplementationOnce(() => {
@@ -27,7 +27,7 @@ describe('FindPlaylistTracksByIdService', () => {
         },
       });
     });
-    await sut.find('id');
+    await sut.find(['id']);
     expect(getAccessTokenServiceSpy.count).toBe(1);
   });
 
@@ -36,11 +36,13 @@ describe('FindPlaylistTracksByIdService', () => {
     jest.spyOn(axios, 'get').mockImplementationOnce(() => {
       return Promise.resolve({
         data: {
-          items: [],
+          tracks: {
+            items: [],
+          },
         },
       });
     });
-    const trackIds = await sut.find('id');
+    const trackIds = await sut.find(['id']);
     expect(trackIds).toEqual([]);
   });
 
@@ -53,7 +55,7 @@ describe('FindPlaylistTracksByIdService', () => {
         },
       });
     });
-    const trackIds = await sut.find('id');
+    const trackIds = await sut.find(['id']);
     expect(trackIds).toEqual(['1AbCdEfG']);
   });
 });

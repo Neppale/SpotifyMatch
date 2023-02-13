@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { GetAccessTokenService } from 'src/utils/auth/services/get-access-token.service';
-import { GetAccessToken } from 'src/utils/auth/services/useCases/get-access-token';
+import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
+import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
 import { ValidateProfileById } from './useCases/validate-profile-by-id';
 
 @Injectable()
