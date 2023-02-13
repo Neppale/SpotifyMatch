@@ -1,5 +1,5 @@
 import { FindPlaylistIdsByUserIdService } from '../../../../playlist/services/find-playlist-ids-by-user-id.service';
-import { FindTracksByPlaylistIdsService } from '../../../../playlist/services/find-tracks-by-playlist-ids.service';
+import { FindTracksByPlaylistIdsService } from '../../../../playlist/services/find-track-ids-by-playlist-ids.service';
 import {
   ProfileComparison,
   Verdict,

@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { FindTracksByPlaylistIds } from './useCases/find-tracks-by-playlist-ids';
+import { FindTrackIdsByPlaylistIds } from './useCases/find-track-ids-by-playlist-ids';
 import axios from 'axios';
 import { Item } from '../models/detailed-playlist.model';
 import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
 import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
 
 @Injectable()
-export class FindTracksByPlaylistIdsService implements FindTracksByPlaylistIds {
+export class FindTrackIdsByPlaylistIdsService
+  implements FindTrackIdsByPlaylistIds
+{
   url = 'https://api.spotify.com/v1/playlists/';
   getAccessTokenService: GetAccessToken;
 
