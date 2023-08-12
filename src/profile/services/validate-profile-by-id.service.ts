@@ -14,15 +14,12 @@ export class ValidateProfileByIdService implements ValidateProfileById {
   }
   async validate(id: string): Promise<boolean> {
     const authorization = await this.getAccessTokenService.get();
-    try {
-      await axios.get(`${this.url}${id}`, {
-        headers: {
-          Authorization: authorization,
-        },
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
+
+    await axios.get(`${this.url}${id}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    return true;
   }
 }

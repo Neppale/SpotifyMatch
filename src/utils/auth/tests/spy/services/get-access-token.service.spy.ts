@@ -7,6 +7,6 @@ export class GetAccessTokenServiceSpy implements GetAccessTokenService {
   count = 0;
   async get(): Promise<string> {
     this.count++;
-    return Promise.resolve(this.accessToken);
+    return this.accessToken;
   }
 }

@@ -29,7 +29,10 @@ export class ProfileController {
       secondProfile,
       advanced,
     });
-    await this.cacheService.set(`${firstProfile}-${secondProfile}`, result);
+    await this.cacheService.set(
+      `${firstProfile}-${secondProfile}-${advanced}`,
+      result,
+    );
     return result;
   }
 }
