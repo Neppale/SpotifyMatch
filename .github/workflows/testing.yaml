@@ -1,6 +1,11 @@
 name: Testing workflow
 
+# Should only run on push to branches that are not master or develop
 on: [push]
+    branches:
+    - '*'
+    - '!master'
+    - '!develop'
 
 jobs:
   build:
