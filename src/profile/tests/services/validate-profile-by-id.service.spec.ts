@@ -19,6 +19,9 @@ const makeSut = (): SutOutput => {
 describe('ValidateProfileByIdService', () => {
   it('should call GetAccessTokenService.get once', async () => {
     const { sut, getAccessTokenService } = makeSut();
+    jest.spyOn(axios, 'get').mockImplementationOnce(() => {
+      return new Promise((resolve) => resolve({}));
+    });
     await sut.validate('any_id');
     expect(getAccessTokenService.count).toBe(1);
   });
