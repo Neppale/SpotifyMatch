@@ -21,7 +21,7 @@ export class ProfileController {
     @Payload() { firstProfile, secondProfile, advanced }: ProfileParameters,
   ): Promise<ProfileComparison> {
     const cachedResult = await this.cacheService.get(
-      `${firstProfile}-${secondProfile}`,
+      `${firstProfile}-${secondProfile}-${advanced}`,
     );
     if (cachedResult) return cachedResult;
     const result = await this.compareProfilesByIdService.compare({
