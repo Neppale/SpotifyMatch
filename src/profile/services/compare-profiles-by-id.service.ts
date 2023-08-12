@@ -43,16 +43,11 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     if (!firstProfile || !secondProfile) {
       throw new BadRequestException('Missing profile id');
     }
-    const [isFirstProfileValid, isSecondProfileValid] = await Promise.all([
+
+    await Promise.all([
       this.validateProfileByIdService.validate(firstProfile),
       this.validateProfileByIdService.validate(secondProfile),
     ]);
-    if (!isFirstProfileValid) {
-      throw new BadRequestException('First profile id is invalid');
-    }
-    if (!isSecondProfileValid) {
-      throw new BadRequestException('Second profile id is invalid');
-    }
 
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
       await Promise.all([

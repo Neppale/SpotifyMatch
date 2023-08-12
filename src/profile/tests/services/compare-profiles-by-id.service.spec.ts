@@ -63,28 +63,6 @@ describe('CompareProfilesByIdService', () => {
       await expect(promise).rejects.toThrow('Missing profile id');
     });
 
-    it('should throw if firstProfile is invalid', async () => {
-      const { sut, validateProfileByIdService } = makeSut();
-      validateProfileByIdService.response = false;
-      const promise = sut.compare({
-        firstProfile: 'invalid_id',
-        secondProfile: 'any_id',
-        advanced: false,
-      });
-      await expect(promise).rejects.toThrow('First profile id is invalid');
-    });
-
-    it('should throw if secondProfile is invalid', async () => {
-      const { sut, validateProfileByIdService } = makeSut();
-      validateProfileByIdService.secondResponse = false;
-      const promise = sut.compare({
-        firstProfile: 'any_id',
-        secondProfile: 'invalid_id',
-        advanced: false,
-      });
-      await expect(promise).rejects.toThrow('Second profile id is invalid');
-    });
-
     it('should call findPlaylistIdsByIdService.find twice', async () => {
       const { sut, findPlaylistIdsByIdService } = makeSut();
       const firstProfile = 'any_id';
