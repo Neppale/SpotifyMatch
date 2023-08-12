@@ -1,10 +1,7 @@
-import {
-  ProfileComparison,
-  Verdict,
-} from './profile/models/profile-comparison.model';
-import { ProfileController } from './profile/profile.controller';
-import { CompareProfilesByIdServiceSpy } from './profile/tests/spy/services/compare-profiles-by-id.service.spy';
-import { CacheServiceSpy } from './utils/cache/tests/spy/services/cache.service.spy';
+import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
+import { ProfileController } from '../profile.controller';
+import { CompareProfilesByIdServiceSpy } from './spy/services/compare-profiles-by-id.service.spy';
+import { CacheServiceSpy } from '../../utils/cache/tests/spy/services/cache.service.spy';
 
 type SutOutput = {
   sut: ProfileController;

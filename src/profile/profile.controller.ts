@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Post } from '@nestjs/common';
 import { Payload } from '@nestjs/microservices';
 import { ProfileParameters } from './models/profile.parameters';
 import { ProfileComparison } from './models/profile-comparison.model';
@@ -16,7 +16,7 @@ export class ProfileController {
   ) {
     this.compareProfilesByIdService = compareProfilesByIdService;
   }
-  @Get()
+  @Post()
   async compare(
     @Payload() { firstProfile, secondProfile, advanced }: ProfileParameters,
   ): Promise<ProfileComparison> {
