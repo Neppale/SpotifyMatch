@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FindPlaylistIdsByUserIdService } from '../../../../playlist/services/find-playlist-ids-by-user-id.service';
 import { FindTrackIdsByPlaylistIdsService } from '../../../../playlist/services/find-track-ids-by-playlist-ids.service';
 import {
@@ -9,10 +10,12 @@ import { FindSimilarTracksService } from '../../../../tracks/services/find-simil
 import { CompareProfilesByIdService } from 'src/profile/services/compare-profiles-by-id.service';
 import { ValidateProfileById } from 'src/profile/services/useCases/validate-profile-by-id';
 import { FindMinimizedTrack } from 'src/tracks/services/useCases/find-minimized-track';
+import { Logger } from '@nestjs/common';
 
 export class CompareProfilesByIdServiceSpy
   implements CompareProfilesByIdService
 {
+  logger: Logger;
   findMinimizedTrackService: FindMinimizedTrack;
   validateProfileByIdService: ValidateProfileById;
   findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService;

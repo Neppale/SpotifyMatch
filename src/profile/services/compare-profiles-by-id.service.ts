@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ProfileParameters } from '../models/profile.parameters';
 import { CompareProfilesById } from './useCases/compare-profiles-by-id';
 import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
@@ -16,6 +16,7 @@ import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
+  logger: Logger = new Logger(CompareProfilesByIdService.name);
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
   findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIds;
   findSimilarTracksService: FindSimilarTracks;
@@ -48,6 +49,10 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       this.validateProfileByIdService.validate(firstProfile),
       this.validateProfileByIdService.validate(secondProfile),
     ]);
+
+    this.logger.log(
+      `Comparing profiles: ${firstProfile} and ${secondProfile} with advanced parameter set to ${advanced}`,
+    );
 
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
       await Promise.all([
@@ -118,6 +123,12 @@ export class CompareProfilesByIdService implements CompareProfilesById {
       totalProbableMatches: probableMatches?.length,
       totalTracks,
     };
+
+    this.logger.log(
+      `Profiles ${firstProfile} and ${secondProfile} have a ${percentage}% match with ${
+        sameTracks.size
+      } same tracks and ${probableMatches?.length || 0} probable matches`,
+    );
 
     return profileComparison;
   }
