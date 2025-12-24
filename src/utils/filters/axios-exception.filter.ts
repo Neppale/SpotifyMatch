@@ -1,7 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, Logger } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { Request, Response } from 'express';
-import { ProfileParameters } from '../../profile/models/profile.parameters';
+import { ProfileParameters } from '@Profile/models/profile.parameters';
 
 @Catch(AxiosError)
 export class AxiosExceptionFilter implements ExceptionFilter {

@@ -1,4 +1,4 @@
-import { CompareProfilesByIdService } from '../../../profile/services/compare-profiles-by-id.service';
+import { CompareProfilesByIdService } from '@Profile/services/compare-profiles-by-id.service';
 import { FindPlaylistIdsByUserIdServiceSpy } from '@Playlist/tests/spy/services/find-playlist-ids-by-user-id.service.spy';
 import { FindMinimizedTrackServiceSpy } from '@Tracks/tests/spy/services/find-minimized-track.service.spy';
 import { ValidateProfileByIdServiceSpy } from '../spy/services/validate-profile-by-id.service.spy';
@@ -7,7 +7,7 @@ import { FindSimilarTracksServiceSpy } from '@Tracks/tests/spy/services/find-sim
 import {
   ProfileComparison,
   Verdict,
-} from '../../../profile/models/profile-comparison.model';
+} from '@Profile/models/profile-comparison.model';
 type SutOutput = {
   sut: CompareProfilesByIdService;
   findPlaylistIdsByIdService: FindPlaylistIdsByUserIdServiceSpy;

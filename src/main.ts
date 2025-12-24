@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './profile/app.module';
+import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { AxiosExceptionFilter } from './utils/filters/axios-exception.filter';
 

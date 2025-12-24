@@ -4,11 +4,11 @@ import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-
 import {
   ProfileComparison,
   Verdict,
-} from '../../../../profile/models/profile-comparison.model';
-import { ProfileParameters } from '../../../models/profile.parameters';
+} from '@Profile/models/profile-comparison.model';
+import { ProfileParameters } from '@Profile/models/profile.parameters';
 import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
-import { CompareProfilesByIdService } from 'src/profile/services/compare-profiles-by-id.service';
-import { ValidateProfileById } from 'src/profile/services/useCases/validate-profile-by-id';
+import { CompareProfilesByIdService } from '@Profile/services/compare-profiles-by-id.service';
+import { ValidateProfileById } from '@Profile/services/useCases/validate-profile-by-id';
 import { FindMinimizedTrack } from '@Tracks/services/useCases/find-minimized-track';
 import { Logger } from '@nestjs/common';
 

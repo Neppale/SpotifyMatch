@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ProfilePlaylistData } from '../../profile/models/profile-playlist-data.model';
+import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
 import { FindPlaylistIdsByUserId } from './useCases/find-playlist-ids-by-user-id';
 import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
 import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';

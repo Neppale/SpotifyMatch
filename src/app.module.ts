@@ -1,12 +1,12 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { ProfileController } from './profile.controller';
+import { ProfileController } from './profile/profile.controller';
 import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
-import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
-import { GetAccessTokenService } from '../utils/auth/services/get-access-token.service';
+import { CompareProfilesByIdService } from './profile/services/compare-profiles-by-id.service';
+import { GetAccessTokenService } from './utils/auth/services/get-access-token.service';
 import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
 import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from '@Tracks/services/find-minimized-track.service';
-import { ValidateProfileByIdService } from './services/validate-profile-by-id.service';
+import { ValidateProfileByIdService } from './profile/services/validate-profile-by-id.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { CacheService } from 'src/utils/cache/services/cache.service';
