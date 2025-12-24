@@ -16,6 +16,7 @@
     "paths": {
       "@Playlist/*": ["src/playlist/*"],
       "@Prisma/*": ["src/prisma/*"],
+      "@PrismaClient": ["generated/prisma"],
       "@Profile/*": ["src/profile/*"],
       "@Tracks/*": ["src/tracks/*"],
       "@Utils/*": ["src/utils/*"]

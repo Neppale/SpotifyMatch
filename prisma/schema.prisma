@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -11,15 +11,26 @@ datasource db {
 }
 
 model Track {
-  id          String   @id @default(uuid())
-  spotifyId   String   @unique @map("spotify_id")
-  artist      String
-  title       String
-  album       String
-  releaseDate String   @map("release_date")
-  durationMs  Int      @map("duration_ms")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String         @id @default(uuid())
+  spotifyId    String         @unique @map("spotify_id")
+  artist       String
+  title        String
+  album        String
+  releaseDate  String         @map("release_date")
+  durationMs   Int            @map("duration_ms")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  SimilarTrack SimilarTrack[]
+}
 
-  @@map("tracks")
+model SimilarTrack {
+  id             String   @id @default(uuid())
+  trackId        String   @map("track_id")
+  Track          Track    @relation(fields: [trackId], references: [id])
+  spotifyId      String   @map("spotify_id")
+  score          Int      
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([spotifyId])
 }
