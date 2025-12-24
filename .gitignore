@@ -39,3 +39,9 @@ lerna-debug.log*
 
 # Coverage
 /coverage
+
+/generated/prisma
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
