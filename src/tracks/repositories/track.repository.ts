@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@Prisma/services/prisma.service';
-import { Prisma } from '@PrismaClient';
+import { Prisma } from 'generated/prisma';
+
 @Injectable()
 export class TrackRepository {
   constructor(private readonly prismaService: PrismaService) {}

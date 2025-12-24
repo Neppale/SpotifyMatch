@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthService } from '@Utils/auth/services/auth.service';
 import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
-import { Track } from '@PrismaClient';
+import { Track } from 'generated/prisma';
 import { Item } from '@Playlist/models/detailed-playlist.model';
 
 @Injectable()
