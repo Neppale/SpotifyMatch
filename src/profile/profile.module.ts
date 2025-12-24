@@ -1,8 +1,6 @@
 import { CacheModule, Module } from '@nestjs/common';
 import { ProfileController } from '@Profile/profile.controller';
 import { ProfileService } from '@Profile/services/profile.service';
-import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
-import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
 import { TrackModule } from '@Tracks/track.module';
 import { CacheService } from '@Utils/cache/services/cache.service';
 
@@ -15,12 +13,7 @@ import { CacheService } from '@Utils/cache/services/cache.service';
     }),
   ],
   controllers: [ProfileController],
-  providers: [
-    ProfileService,
-    FindPlaylistIdsByUserIdService,
-    FindTrackIdsByPlaylistIdsService,
-    CacheService,
-  ],
+  providers: [ProfileService, CacheService],
   exports: [ProfileService],
 })
 export class ProfileModule {}
