@@ -85,6 +85,23 @@
       ".spy.ts"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "paths": {
+      "@Playlist/*": [
+        "src/playlist/*"
+      ],
+      "@Prisma/*": [
+        "src/prisma/*"
+      ],
+      "@Profile/*": [
+        "src/profile/*"
+      ],
+      "@Tracks/*": [
+        "src/tracks/*"
+      ],
+      "@Utils/*": [
+        "src/utils/*"
+      ]
+    }
   }
 }
