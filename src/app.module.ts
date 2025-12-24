@@ -11,6 +11,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { CacheService } from '@Utils/cache/services/cache.service';
 import { PrismaModule } from '@Prisma/prisma.module';
+import { TrackRepository } from '@Tracks/repositories/track.repository';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PrismaModule } from '@Prisma/prisma.module';
     FindTrackIdsByPlaylistIdsService,
     FindSimilarTracksService,
     FindMinimizedTrackService,
+    TrackRepository,
     CacheService,
     ValidateProfileByIdService,
     {
