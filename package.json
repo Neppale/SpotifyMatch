@@ -101,9 +101,6 @@
       ],
       "@Utils/*": [
         "<rootDir>/utils/*"
-      ],
-      "@PrismaClient": [
-        "<rootDir>/../generated/prisma/client"
       ]
     }
   }
