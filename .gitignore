@@ -40,11 +40,7 @@ lerna-debug.log*
 # Coverage
 /coverage
 
-/generated/prisma
-
 # Prisma
 prisma/*.db
 prisma/*.db-journal
-
-# Prisma generated files
-prisma/generated/*
+/generated/prisma

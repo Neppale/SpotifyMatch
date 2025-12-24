@@ -18,7 +18,8 @@
       "@Prisma/*": ["src/prisma/*"],
       "@Profile/*": ["src/profile/*"],
       "@Tracks/*": ["src/tracks/*"],
-      "@Utils/*": ["src/utils/*"]
+      "@Utils/*": ["src/utils/*"],
+      "@PrismaClient": ["generated/prisma/client"]
     },
     "incremental": true,
     "strictNullChecks": false,

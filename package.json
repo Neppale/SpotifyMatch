@@ -88,19 +88,22 @@
     "testEnvironment": "node",
     "paths": {
       "@Playlist/*": [
-        "src/playlist/*"
+        "<rootDir>/playlist/*"
       ],
       "@Prisma/*": [
-        "src/prisma/*"
+        "<rootDir>/prisma/*"
       ],
       "@Profile/*": [
-        "src/profile/*"
+        "<rootDir>/profile/*"
       ],
       "@Tracks/*": [
-        "src/tracks/*"
+        "<rootDir>/tracks/*"
       ],
       "@Utils/*": [
-        "src/utils/*"
+        "<rootDir>/utils/*"
+      ],
+      "@PrismaClient": [
+        "<rootDir>/../generated/prisma/client"
       ]
     }
   }
