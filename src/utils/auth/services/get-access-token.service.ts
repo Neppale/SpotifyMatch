@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { AccessTokenModel } from '../models/access-token.model';
-import { GetAccessToken } from './useCases/get-access-token';
+import { AccessTokenModel } from '@Utils/auth/models/access-token.model';
+import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
 
 export class GetAccessTokenService implements GetAccessToken {
   clientSecret = process.env.SPOTIFY_CLIENT_SECRET;

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
-import { FindMinimizedTrack } from './useCases/find-minimized-track';
-import { MinimizedTrack } from '../models/minimized-track.model';
-import { DetailedTrack } from '../models/detailed-track.model';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
+import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { FindMinimizedTrack } from '@Tracks/services/useCases/find-minimized-track';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 
 @Injectable()
 export class FindMinimizedTrackService implements FindMinimizedTrack {

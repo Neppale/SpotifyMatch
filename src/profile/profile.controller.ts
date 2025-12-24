@@ -1,10 +1,10 @@
 import { Controller, Post } from '@nestjs/common';
 import { Payload } from '@nestjs/microservices';
-import { ProfileParameters } from './models/profile.parameters';
-import { ProfileComparison } from './models/profile-comparison.model';
-import { CompareProfilesByIdService } from './services/compare-profiles-by-id.service';
-import { CompareProfilesById } from './services/useCases/compare-profiles-by-id';
-import { CacheService } from '../utils/cache/services/cache.service';
+import { ProfileParameters } from '@Profile/models/profile.parameters';
+import { ProfileComparison } from '@Profile/models/profile-comparison.model';
+import { CompareProfilesByIdService } from '@Profile/services/compare-profiles-by-id.service';
+import { CompareProfilesById } from '@Profile/services/useCases/compare-profiles-by-id';
+import { CacheService } from '@Utils/cache/services/cache.service';
 
 @Controller('compare')
 export class ProfileController {

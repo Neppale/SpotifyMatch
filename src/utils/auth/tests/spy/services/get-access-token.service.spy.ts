@@ -1,4 +1,4 @@
-import { GetAccessTokenService } from 'src/utils/auth/services/get-access-token.service';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
 
 export class GetAccessTokenServiceSpy implements GetAccessTokenService {
   clientSecret: string;

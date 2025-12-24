@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { FindSimilarTracks } from './useCases/find-similar-tracks';
+import { FindSimilarTracks } from '@Tracks/services/useCases/find-similar-tracks';
 import axios from 'axios';
-import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
-import { DetailedTrack } from '../models/detailed-track.model';
-import { MinimizedTrack } from '../models/minimized-track.model';
-import { ArtistTracks } from '../models/artist-tracks.model';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
+import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { DetailedTrack } from '@Tracks/models/detailed-track.model';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { ArtistTracks } from '@Tracks/models/artist-tracks.model';
 
 @Injectable()
 export class FindSimilarTracksService implements FindSimilarTracks {

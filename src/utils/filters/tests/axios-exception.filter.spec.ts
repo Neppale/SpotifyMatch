@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { AxiosExceptionFilter } from '../axios-exception.filter';
+import { AxiosExceptionFilter } from '@Utils/filters/axios-exception.filter';
 
 type SutOutput = {
   sut: AxiosExceptionFilter;

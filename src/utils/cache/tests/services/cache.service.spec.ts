@@ -1,5 +1,5 @@
-import { CacheService } from '../../services/cache.service';
-import { CacheManagerSpy } from '../spy/services/cache.manager.spy';
+import { CacheService } from '@Utils/cache/services/cache.service';
+import { CacheManagerSpy } from '@Utils/cache/tests/spy/services/cache.manager.spy';
 
 type SutOutput = {
   sut: CacheService;

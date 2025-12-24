@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../prisma/prisma.module';
-import { TrackRepository } from './repositories/track.repository';
+import { PrismaModule } from '@Prisma/prisma.module';
+import { TrackRepository } from '@Tracks/repositories/track.repository';
 
 @Module({
   imports: [PrismaModule],

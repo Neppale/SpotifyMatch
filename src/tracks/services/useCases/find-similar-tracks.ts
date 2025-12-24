@@ -1,4 +1,4 @@
-import { MinimizedTrack } from '../../models/minimized-track.model';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
 
 export interface FindSimilarTracks {
   find(

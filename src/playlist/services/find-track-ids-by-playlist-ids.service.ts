@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { FindTrackIdsByPlaylistIds } from './useCases/find-track-ids-by-playlist-ids';
+import { FindTrackIdsByPlaylistIds } from '@Playlist/services/useCases/find-track-ids-by-playlist-ids';
 import axios from 'axios';
-import { Item } from '../models/detailed-playlist.model';
-import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
+import { Item } from '@Playlist/models/detailed-playlist.model';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
+import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
 
 @Injectable()
 export class FindTrackIdsByPlaylistIdsService

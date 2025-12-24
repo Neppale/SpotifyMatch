@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
-import { AxiosExceptionFilter } from './utils/filters/axios-exception.filter';
+import { AxiosExceptionFilter } from '@Utils/filters/axios-exception.filter';
 
 dotenv.config();
 

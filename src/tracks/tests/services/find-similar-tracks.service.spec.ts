@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
-import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
+import { GetAccessTokenServiceSpy } from '@Utils/auth/tests/spy/services/get-access-token.service.spy';
 import { detailedTrackMock } from '@Tracks/models/detailed-track.model';
 
 type SutOutput = {

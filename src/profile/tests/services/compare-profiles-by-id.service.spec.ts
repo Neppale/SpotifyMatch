@@ -1,7 +1,7 @@
 import { CompareProfilesByIdService } from '@Profile/services/compare-profiles-by-id.service';
 import { FindPlaylistIdsByUserIdServiceSpy } from '@Playlist/tests/spy/services/find-playlist-ids-by-user-id.service.spy';
 import { FindMinimizedTrackServiceSpy } from '@Tracks/tests/spy/services/find-minimized-track.service.spy';
-import { ValidateProfileByIdServiceSpy } from '../spy/services/validate-profile-by-id.service.spy';
+import { ValidateProfileByIdServiceSpy } from '@Profile/tests/spy/services/validate-profile-by-id.service.spy';
 import { FindTrackIdsByPlaylistIdsServiceSpy } from '@Playlist/tests/spy/services/find-track-ids-by-playlist-ids.service.spy';
 import { FindSimilarTracksServiceSpy } from '@Tracks/tests/spy/services/find-similar-tracks.service.spy';
 import {
