@@ -6,13 +6,13 @@ import { FindPlaylistIdsByUserId } from '@Playlist/services/useCases/find-playli
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
 import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
 import { FindTrackIdsByPlaylistIds } from '@Playlist/services/useCases/find-track-ids-by-playlist-ids';
-import { FindSimilarTracks } from '../../tracks/services/useCases/find-similar-tracks';
-import { FindSimilarTracksService } from '../../tracks/services/find-similar-tracks.service';
-import { FindMinimizedTrackService } from '../../tracks/services/find-minimized-track.service';
-import { FindMinimizedTrack } from '../../tracks/services/useCases/find-minimized-track';
+import { FindSimilarTracks } from '@Tracks/services/useCases/find-similar-tracks';
+import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
+import { FindMinimizedTrackService } from '@Tracks/services/find-minimized-track.service';
+import { FindMinimizedTrack } from '@Tracks/services/useCases/find-minimized-track';
 import { ValidateProfileById } from './useCases/validate-profile-by-id';
 import { ValidateProfileByIdService } from './validate-profile-by-id.service';
-import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {

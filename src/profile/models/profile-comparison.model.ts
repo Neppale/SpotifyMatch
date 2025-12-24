@@ -1,4 +1,4 @@
-import { MinimizedTrack } from '../../tracks/models/minimized-track.model';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
 
 export class ProfileComparison {
   sameTracks: number;

@@ -1,6 +1,6 @@
 import { GetAccessTokenService } from 'src/utils/auth/services/get-access-token.service';
-import { MinimizedTrack } from '../../../../tracks/models/minimized-track.model';
-import { FindSimilarTracksService } from '../../../../tracks/services/find-similar-tracks.service';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
 
 export class FindSimilarTracksServiceSpy implements FindSimilarTracksService {
   url: string;

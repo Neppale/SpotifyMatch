@@ -6,10 +6,10 @@ import {
   Verdict,
 } from '../../../../profile/models/profile-comparison.model';
 import { ProfileParameters } from '../../../models/profile.parameters';
-import { FindSimilarTracksService } from '../../../../tracks/services/find-similar-tracks.service';
+import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
 import { CompareProfilesByIdService } from 'src/profile/services/compare-profiles-by-id.service';
 import { ValidateProfileById } from 'src/profile/services/useCases/validate-profile-by-id';
-import { FindMinimizedTrack } from 'src/tracks/services/useCases/find-minimized-track';
+import { FindMinimizedTrack } from '@Tracks/services/useCases/find-minimized-track';
 import { Logger } from '@nestjs/common';
 
 export class CompareProfilesByIdServiceSpy

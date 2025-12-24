@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FindMinimizedTrackService } from '../../../tracks/services/find-minimized-track.service';
+import { FindMinimizedTrackService } from '@Tracks/services/find-minimized-track.service';
 import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
 
 type SutOutput = {
