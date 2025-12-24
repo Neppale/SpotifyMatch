@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GetAccessTokenService } from '../../services/get-access-token.service';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
 
 type SutOutput = {
   sut: GetAccessTokenService;

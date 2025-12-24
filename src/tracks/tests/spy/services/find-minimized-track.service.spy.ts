@@ -1,6 +1,6 @@
-import { MinimizedTrack } from 'src/tracks/models/minimized-track.model';
-import { FindMinimizedTrackService } from '../../../../tracks/services/find-minimized-track.service';
-import { GetAccessTokenService } from '../../../../utils/auth/services/get-access-token.service';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { FindMinimizedTrackService } from '@Tracks/services/find-minimized-track.service';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
 
 export class FindMinimizedTrackServiceSpy implements FindMinimizedTrackService {
   url: string;

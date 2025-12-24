@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { ValidateProfileByIdService } from '../../../profile/services/validate-profile-by-id.service';
-import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
+import { ValidateProfileByIdService } from '@Profile/services/validate-profile-by-id.service';
+import { GetAccessTokenServiceSpy } from '@Utils/auth/tests/spy/services/get-access-token.service.spy';
 
 type SutOutput = {
   sut: ValidateProfileByIdService;

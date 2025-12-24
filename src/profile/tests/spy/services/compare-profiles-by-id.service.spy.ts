@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { FindPlaylistIdsByUserIdService } from '../../../../playlist/services/find-playlist-ids-by-user-id.service';
-import { FindTrackIdsByPlaylistIdsService } from '../../../../playlist/services/find-track-ids-by-playlist-ids.service';
+import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
+import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
 import {
   ProfileComparison,
   Verdict,
-} from '../../../../profile/models/profile-comparison.model';
-import { ProfileParameters } from '../../../models/profile.parameters';
-import { FindSimilarTracksService } from '../../../../tracks/services/find-similar-tracks.service';
-import { CompareProfilesByIdService } from 'src/profile/services/compare-profiles-by-id.service';
-import { ValidateProfileById } from 'src/profile/services/useCases/validate-profile-by-id';
-import { FindMinimizedTrack } from 'src/tracks/services/useCases/find-minimized-track';
+} from '@Profile/models/profile-comparison.model';
+import { ProfileParameters } from '@Profile/models/profile.parameters';
+import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
+import { CompareProfilesByIdService } from '@Profile/services/compare-profiles-by-id.service';
+import { ValidateProfileById } from '@Profile/services/useCases/validate-profile-by-id';
+import { FindMinimizedTrack } from '@Tracks/services/useCases/find-minimized-track';
 import { Logger } from '@nestjs/common';
 
 export class CompareProfilesByIdServiceSpy

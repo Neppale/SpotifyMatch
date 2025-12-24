@@ -1,5 +1,5 @@
-import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
-import { FindPlaylistIdsByUserIdService } from '../../services/find-playlist-ids-by-user-id.service';
+import { GetAccessTokenServiceSpy } from '@Utils/auth/tests/spy/services/get-access-token.service.spy';
+import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
 import axios from 'axios';
 
 type SutOutput = {

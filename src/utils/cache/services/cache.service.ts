@@ -1,6 +1,6 @@
 import { Cache } from 'cache-manager';
 import { Injectable } from '@nestjs/common/decorators/core/injectable.decorator';
-import { CacheClient } from './useCases/cache-client';
+import { CacheClient } from '@Utils/cache/services/useCases/cache-client';
 import { CACHE_MANAGER, Inject } from '@nestjs/common';
 
 @Injectable()

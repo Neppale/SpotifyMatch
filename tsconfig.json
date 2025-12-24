@@ -1,21 +1,31 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@Playlist/*": ["src/playlist/*"],
+      "@Prisma/*": ["src/prisma/*"],
+      "@Profile/*": ["src/profile/*"],
+      "@Tracks/*": ["src/tracks/*"],
+      "@Utils/*": ["src/utils/*"]
+    },
     "incremental": true,
-    "skipLibCheck": true,
     "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "strict": false
   }
 }

@@ -4,10 +4,12 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Nest Debug",
+      "name": "Debug SpotifyMatch API",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:debug"],
-      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "outputCapture": "std",
       "restart": true
     }
   ]

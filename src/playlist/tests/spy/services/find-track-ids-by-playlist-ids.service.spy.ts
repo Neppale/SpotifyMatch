@@ -1,5 +1,5 @@
-import { FindTrackIdsByPlaylistIdsService } from 'src/playlist/services/find-track-ids-by-playlist-ids.service';
-import { GetAccessTokenService } from '../../../../utils/auth/services/get-access-token.service';
+import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
 
 export class FindTrackIdsByPlaylistIdsServiceSpy
   implements FindTrackIdsByPlaylistIdsService

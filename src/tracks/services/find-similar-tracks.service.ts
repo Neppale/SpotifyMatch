@@ -1,18 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { FindSimilarTracks } from './useCases/find-similar-tracks';
+import { FindSimilarTracks } from '@Tracks/services/useCases/find-similar-tracks';
 import axios from 'axios';
-import { GetAccessTokenService } from '../../utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '../../utils/auth/services/useCases/get-access-token';
-import { DetailedTrack } from '../models/detailed-track.model';
-import { MinimizedTrack } from '../models/minimized-track.model';
-import { ArtistTracks } from '../models/artist-tracks.model';
+import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
+import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { DetailedTrack } from '@Tracks/models/detailed-track.model';
+import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { ArtistTracks } from '@Tracks/models/artist-tracks.model';
+import { TrackRepository } from '@Tracks/repositories/track.repository';
 
 @Injectable()
 export class FindSimilarTracksService implements FindSimilarTracks {
   url = 'https://api.spotify.com/v1/tracks/';
   getAccessTokenService: GetAccessToken;
 
-  constructor(getAccessTokenService: GetAccessTokenService) {
+  constructor(
+    getAccessTokenService: GetAccessTokenService,
+    readonly trackRepository: TrackRepository,
+  ) {
     this.getAccessTokenService = getAccessTokenService;
   }
   async find(
@@ -140,6 +144,17 @@ export class FindSimilarTracksService implements FindSimilarTracks {
         });
       }
     });
+
+    await this.trackRepository.createMany(
+      similarTracks.map((track) => ({
+        artist: track.artist,
+        spotifyId: track.href.split('/').pop(),
+        title: track.track,
+        album: track.album,
+        releaseDate: track.releaseDate,
+        durationMs: track.length,
+      })),
+    );
 
     return similarTracks;
   }

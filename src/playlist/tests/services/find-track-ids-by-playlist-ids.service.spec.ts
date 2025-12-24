@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { GetAccessTokenServiceSpy } from '../../../utils/auth/tests/spy/services/get-access-token.service.spy';
-import { detailedPlaylistMock } from '../../models/detailed-playlist.model';
-import { FindTrackIdsByPlaylistIdsService } from '../../services/find-track-ids-by-playlist-ids.service';
+import { GetAccessTokenServiceSpy } from '@Utils/auth/tests/spy/services/get-access-token.service.spy';
+import { detailedPlaylistMock } from '@Playlist/models/detailed-playlist.model';
+import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
 
 type SutOutput = {
   sut: FindTrackIdsByPlaylistIdsService;

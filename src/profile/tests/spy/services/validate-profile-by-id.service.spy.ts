@@ -1,5 +1,5 @@
-import { GetAccessToken } from 'src/utils/auth/services/useCases/get-access-token';
-import { ValidateProfileByIdService } from '../../../../profile/services/validate-profile-by-id.service';
+import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { ValidateProfileByIdService } from '@Profile/services/validate-profile-by-id.service';
 
 export class ValidateProfileByIdServiceSpy
   implements ValidateProfileByIdService
