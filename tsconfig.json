@@ -16,6 +16,13 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@Playlist/*": ["src/playlist/*"],
+      "@Prisma/*": ["src/prisma/*"],
+      "@Profile/*": ["src/profile/*"],
+      "@Tracks/*": ["src/tracks/*"],
+      "@Utils/*": ["src/utils/*"]
+    }
   }
 }

@@ -45,3 +45,6 @@ lerna-debug.log*
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Prisma generated files
+prisma/generated/*

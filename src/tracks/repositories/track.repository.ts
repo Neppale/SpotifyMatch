@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/services/prisma.service';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'prisma/generated';
 
 @Injectable()
 export class TrackRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
-  async createMany(
-    data: Prisma.TrackCreateManyInput[],
-  ): Promise<Prisma.BatchPayload> {
-    return await this.prisma.track.createMany({
-      data,
-    });
+  async createMany(data: Prisma.TrackCreateManyInput[]) {
+    return await this.prismaService.getClient().track.createMany({ data });
   }
 }
