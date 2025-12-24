@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
@@ -23,6 +24,7 @@
       "@Profile/*": ["src/profile/*"],
       "@Tracks/*": ["src/tracks/*"],
       "@Utils/*": ["src/utils/*"]
-    }
+    },
+    "esModuleInterop": true
   }
 }

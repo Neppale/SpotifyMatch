@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ProfileParameters } from '../models/profile.parameters';
 import { CompareProfilesById } from './useCases/compare-profiles-by-id';
-import { FindPlaylistIdsByUserIdService } from '../../playlist/services/find-playlist-ids-by-user-id.service';
-import { FindPlaylistIdsByUserId } from '../../playlist/services/useCases/find-playlist-ids-by-user-id';
+import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
+import { FindPlaylistIdsByUserId } from '@Playlist/services/useCases/find-playlist-ids-by-user-id';
 import { ProfileComparison, Verdict } from '../models/profile-comparison.model';
-import { FindTrackIdsByPlaylistIdsService } from '../../playlist/services/find-track-ids-by-playlist-ids.service';
-import { FindTrackIdsByPlaylistIds } from '../../playlist/services/useCases/find-track-ids-by-playlist-ids';
+import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
+import { FindTrackIdsByPlaylistIds } from '@Playlist/services/useCases/find-track-ids-by-playlist-ids';
 import { FindSimilarTracks } from '../../tracks/services/useCases/find-similar-tracks';
 import { FindSimilarTracksService } from '../../tracks/services/find-similar-tracks.service';
 import { FindMinimizedTrackService } from '../../tracks/services/find-minimized-track.service';
