@@ -4,6 +4,7 @@ import { AuthService } from '@Utils/auth/services/auth.service';
 import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import { Track } from '@prisma/client';
+import { Item } from '@Playlist/models/detailed-playlist.model';
 
 @Injectable()
 export class TrackService {
@@ -144,6 +145,33 @@ export class TrackService {
     );
 
     return similarTracks;
+  }
+
+  async getTrackIdsByPlaylistIds(playlistIds: string[]): Promise<string[]> {
+    const playlistUrl = 'https://api.spotify.com/v1/playlists/';
+    const promises = playlistIds.map((playlistId) => {
+      return this.authService.requestWithAuth(async (token) => {
+        return await axios.get(`${playlistUrl}${playlistId}`, {
+          headers: {
+            Authorization: token,
+          },
+        });
+      });
+    });
+    const responses = await Promise.all(promises);
+
+    const tracks: string[] = [];
+    responses.forEach((response) => {
+      response.data.tracks.items.forEach((item: Item) => {
+        const formattedTrackId = item.track?.href.replace(
+          'https://api.spotify.com/v1/tracks/',
+          '',
+        );
+        if (formattedTrackId) tracks.push(formattedTrackId);
+      });
+    });
+
+    return tracks;
   }
 
   private compareTracks(firstTrack: Track, secondTrack: Track): boolean {

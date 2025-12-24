@@ -1,34 +1,52 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { AuthService } from '@Utils/auth/services/auth.service';
-import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
-import { FindPlaylistIdsByUserId } from '@Playlist/services/useCases/find-playlist-ids-by-user-id';
-import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
-import { FindTrackIdsByPlaylistIds } from '@Playlist/services/useCases/find-track-ids-by-playlist-ids';
 import { TrackService } from '@Tracks/services/track.service';
 import {
   ProfileComparison,
   Verdict,
 } from '@Profile/models/profile-comparison.model';
 import { Track } from '@prisma/client';
+import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
 
 @Injectable()
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
   private readonly url = 'https://api.spotify.com/v1/users/';
-  private readonly findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
-  private readonly findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIds;
   private readonly trackService: TrackService;
 
   constructor(
     private readonly authService: AuthService,
-    findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
-    findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIdsService,
     trackService: TrackService,
   ) {
-    this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
-    this.findTrackIdsByPlaylistIdsService = findTrackIdsByPlaylistIdsService;
     this.trackService = trackService;
+  }
+
+  async findPlaylists(profileId: string): Promise<string[]> {
+    const response = await this.authService.requestWithAuth(async (token) => {
+      return await axios.get(`${this.url}${profileId}/playlists`, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    });
+
+    const playlistData: ProfilePlaylistData = response.data;
+    if (!playlistData.items) return [];
+
+    const playlistHrefs: string[] = playlistData.items.map(
+      (item) => item.tracks.href,
+    );
+
+    playlistHrefs.forEach((href, index) => {
+      playlistHrefs[index] = href.replace(
+        'https://api.spotify.com/v1/playlists/',
+        '',
+      );
+      playlistHrefs[index] = playlistHrefs[index].replace('/tracks', '');
+    });
+
+    return playlistHrefs;
   }
 
   async validateProfile(profileId: string): Promise<void> {
@@ -65,13 +83,13 @@ export class ProfileService {
 
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
       await Promise.all([
-        this.findPlaylistIdsByIdService.find(firstProfileId),
-        this.findPlaylistIdsByIdService.find(secondProfileId),
+        this.findPlaylists(firstProfileId),
+        this.findPlaylists(secondProfileId),
       ]);
 
     const [firstProfileTrackIds, secondProfileTrackIds] = await Promise.all([
-      this.findTrackIdsByPlaylistIdsService.find(firstProfilePlaylistIds),
-      this.findTrackIdsByPlaylistIdsService.find(secondProfilePlaylistIds),
+      this.trackService.getTrackIdsByPlaylistIds(firstProfilePlaylistIds),
+      this.trackService.getTrackIdsByPlaylistIds(secondProfilePlaylistIds),
     ]);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
