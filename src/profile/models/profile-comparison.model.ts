@@ -1,4 +1,4 @@
-import { Track } from '@prisma/client';
+import { Track } from '@PrismaClient';
 
 export class ProfileComparison {
   sameTracks: number;

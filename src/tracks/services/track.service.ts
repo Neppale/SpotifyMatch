@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthService } from '@Utils/auth/services/auth.service';
 import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
-import { Track } from '@prisma/client';
+import { Track } from '@PrismaClient';
 import { Item } from '@Playlist/models/detailed-playlist.model';
 
 @Injectable()
@@ -163,7 +163,7 @@ export class TrackService {
     const tracks: string[] = [];
     responses.forEach((response) => {
       response.data.tracks.items.forEach((item: Item) => {
-        const formattedTrackId = item.track?.href.replace(
+        const formattedTrackId = item.track?.href?.replace(
           'https://api.spotify.com/v1/tracks/',
           '',
         );

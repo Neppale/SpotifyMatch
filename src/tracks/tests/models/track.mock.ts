@@ -1,0 +1,116 @@
+import { DetailedTrack } from '@Tracks/models/detailed-track.model';
+import { Track } from 'generated/prisma';
+
+export const DETAILED_TRACK_MOCK: DetailedTrack = {
+  id: 'track1',
+  name: 'Same Track',
+  artists: [
+    {
+      id: 'artist1',
+      name: 'Same Artist',
+      external_urls: { spotify: 'spotify:artist:123' },
+      followers: {
+        total: 100,
+        href: 'https://api.spotify.com/v1/followers/123',
+      },
+      genres: ['genre1', 'genre2'],
+      href: 'https://api.spotify.com/v1/artists/123',
+      images: [
+        {
+          url: 'https://api.spotify.com/v1/images/123',
+          height: 100,
+          width: 100,
+        },
+      ],
+      popularity: 50,
+      type: 'artist',
+      uri: 'spotify:artist:123',
+    },
+  ],
+  album: {
+    album_type: 'album',
+    total_tracks: 10,
+    available_markets: ['US', 'UK'],
+    external_urls: { spotify: 'spotify:album:123' },
+    href: 'https://api.spotify.com/v1/albums/123',
+    id: 'album123',
+    name: 'Same Album',
+    release_date: '2023-01-01',
+    release_date_precision: 'day',
+    restrictions: { reason: 'market' },
+    type: 'album',
+    uri: 'spotify:album:123',
+    copyrights: [{ text: '© 2023 Same Album', type: 'C' }],
+    external_ids: {
+      isrc: 'USQX92200001',
+      ean: '0000000000000',
+      upc: '000000000000',
+    },
+    genres: ['genre1', 'genre2'],
+    label: 'Same Label',
+    popularity: 50,
+    album_group: 'album',
+    artists: [
+      {
+        external_urls: { spotify: 'spotify:artist:123' },
+        href: 'https://api.spotify.com/v1/artists/123',
+        id: 'artist123',
+        name: 'Same Artist',
+        type: 'artist',
+        uri: 'spotify:artist:123',
+        followers: {
+          href: 'https://api.spotify.com/v1/followers/123',
+          total: 100,
+        },
+        genres: ['genre1', 'genre2'],
+        images: [
+          {
+            url: 'https://api.spotify.com/v1/images/123',
+            height: 100,
+            width: 100,
+          },
+        ],
+        popularity: 50,
+      },
+    ],
+    images: [],
+  },
+  duration_ms: 180000,
+  explicit: false,
+  external_ids: {
+    isrc: 'USQX92200001',
+    ean: '0000000000000',
+    upc: '000000000000',
+  },
+  external_urls: { spotify: 'spotify:album:123' },
+  href: 'https://api.spotify.com/v1/albums/123',
+  is_local: false,
+  preview_url: 'https://api.spotify.com/v1/previews/123',
+  track_number: 1,
+  type: 'track',
+  uri: 'spotify:track:123',
+  is_playable: true,
+  linked_from: {
+    external_urls: { spotify: 'spotify:track:123' },
+    href: 'https://api.spotify.com/v1/tracks/123',
+    id: 'track123',
+    type: 'track',
+    uri: 'spotify:track:123',
+  },
+  available_markets: [],
+  disc_number: 0,
+  restrictions: { reason: 'market' },
+  popularity: 0,
+};
+
+export const TRACK_MOCK: Track = {
+  id: 'track1',
+  spotifyId: 'track1',
+  artist: 'Same Artist',
+  title: 'Same Track',
+  album: 'Same Album',
+  releaseDate: '2023-01-01',
+  durationMs: 180000,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
