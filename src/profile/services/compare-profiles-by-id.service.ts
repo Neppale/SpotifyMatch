@@ -9,34 +9,28 @@ import {
 } from '@Profile/models/profile-comparison.model';
 import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
 import { FindTrackIdsByPlaylistIds } from '@Playlist/services/useCases/find-track-ids-by-playlist-ids';
-import { FindSimilarTracks } from '@Tracks/services/useCases/find-similar-tracks';
-import { FindSimilarTracksService } from '@Tracks/services/find-similar-tracks.service';
-import { FindMinimizedTrackService } from '@Tracks/services/find-minimized-track.service';
-import { FindMinimizedTrack } from '@Tracks/services/useCases/find-minimized-track';
+import { TrackService } from '@Tracks/services/track.service';
 import { ValidateProfileById } from '@Profile/services/useCases/validate-profile-by-id';
 import { ValidateProfileByIdService } from '@Profile/services/validate-profile-by-id.service';
-import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { Track } from '@prisma/client';
 
 @Injectable()
 export class CompareProfilesByIdService implements CompareProfilesById {
   logger: Logger = new Logger(CompareProfilesByIdService.name);
   findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
   findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIds;
-  findSimilarTracksService: FindSimilarTracks;
-  findMinimizedTrackService: FindMinimizedTrack;
+  trackService: TrackService;
   validateProfileByIdService: ValidateProfileById;
 
   constructor(
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
     findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIdsService,
-    findSimilarTracksService: FindSimilarTracksService,
-    findMinimizedTrackService: FindMinimizedTrackService,
+    trackService: TrackService,
     validateProfileByIdService: ValidateProfileByIdService,
   ) {
     this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
     this.findTrackIdsByPlaylistIdsService = findTrackIdsByPlaylistIdsService;
-    this.findSimilarTracksService = findSimilarTracksService;
-    this.findMinimizedTrackService = findMinimizedTrackService;
+    this.trackService = trackService;
     this.validateProfileByIdService = validateProfileByIdService;
   }
   async compare({
@@ -88,7 +82,7 @@ export class CompareProfilesByIdService implements CompareProfilesById {
     );
 
     const probableMatches = advanced
-      ? await this.findSimilarTracksService.find(
+      ? await this.trackService.getSimilarTracks(
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
         )
@@ -108,10 +102,10 @@ export class CompareProfilesByIdService implements CompareProfilesById {
 
     const verdict = getVerdict(percentage);
 
-    const matches: MinimizedTrack[] = [];
+    const matches: Track[] = [];
     const minizedTrackPromises = [];
     for (const track of sameTracks) {
-      const promise = this.findMinimizedTrackService.find(track);
+      const promise = this.trackService.getTrack(track);
       minizedTrackPromises.push(promise);
     }
     const minimizedTracks = await Promise.all(minizedTrackPromises);

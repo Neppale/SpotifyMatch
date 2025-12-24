@@ -1,11 +1,11 @@
-import { MinimizedTrack } from '@Tracks/models/minimized-track.model';
+import { Track } from '@prisma/client';
 
 export class ProfileComparison {
   sameTracks: number;
   totalTracks: number;
   percentage: number;
-  matches: MinimizedTrack[];
-  probableMatches?: MinimizedTrack[];
+  matches: Track[];
+  probableMatches?: Track[];
   totalProbableMatches?: number;
   verdict: Verdict;
 }
