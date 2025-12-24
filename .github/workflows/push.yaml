@@ -1,6 +1,7 @@
-name: Testing workflow
+name: Push workflow
 
 on: [push]
+  workflow_dispatch:
 
 jobs:
   build:
