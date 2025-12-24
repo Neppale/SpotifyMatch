@@ -1,25 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
 import { FindPlaylistIdsByUserId } from '@Playlist/services/useCases/find-playlist-ids-by-user-id';
-import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { AuthService } from '@Utils/auth/services/auth.service';
 import axios from 'axios';
 
 @Injectable()
 export class FindPlaylistIdsByUserIdService implements FindPlaylistIdsByUserId {
   url = 'https://api.spotify.com/v1/users/';
-  getAccessTokenService: GetAccessToken;
 
-  constructor(getAccessTokenService: GetAccessTokenService) {
-    this.getAccessTokenService = getAccessTokenService;
-  }
+  constructor(private readonly authService: AuthService) {}
 
   async find(id: string): Promise<string[]> {
-    const authorization = await this.getAccessTokenService.get();
-    const response = await axios.get(`${this.url}${id}/playlists`, {
-      headers: {
-        Authorization: authorization,
-      },
+    const response = await this.authService.requestWithAuth(async (token) => {
+      return await axios.get(`${this.url}${id}/playlists`, {
+        headers: {
+          Authorization: token,
+        },
+      });
     });
 
     const playlistData: ProfilePlaylistData = response.data;
