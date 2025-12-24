@@ -6,7 +6,7 @@ import {
   ProfileComparison,
   Verdict,
 } from '@Profile/models/profile-comparison.model';
-import { Track } from '@PrismaClient';
+import { Track } from 'generated/prisma';
 import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
 
 @Injectable()

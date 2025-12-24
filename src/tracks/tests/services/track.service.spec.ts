@@ -2,11 +2,7 @@ import { TrackService } from '@Tracks/services/track.service';
 import { AuthService } from '@Utils/auth/services/auth.service';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import axios from 'axios';
-import { DetailedTrack } from '@Tracks/models/detailed-track.model';
-import {
-  DETAILED_TRACK_MOCK,
-  TRACK_MOCK,
-} from '@Tracks/tests/models/track.mock';
+import { DETAILED_TRACK_MOCK } from '@Tracks/tests/models/track.mock';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
