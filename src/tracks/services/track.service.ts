@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { AuthService } from '@Utils/auth/services/auth.service';
 import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import { Track } from '@prisma/client';
@@ -9,21 +8,19 @@ import { Track } from '@prisma/client';
 @Injectable()
 export class TrackService {
   url = 'https://api.spotify.com/v1/tracks/';
-  getAccessTokenService: GetAccessToken;
 
   constructor(
-    getAccessTokenService: GetAccessTokenService,
+    private readonly authService: AuthService,
     readonly trackRepository: TrackRepository,
-  ) {
-    this.getAccessTokenService = getAccessTokenService;
-  }
+  ) {}
 
   async getTrack(trackId: string): Promise<Track> {
-    const authorization = await this.getAccessTokenService.get();
-    const response = await axios.get(`${this.url}${trackId}`, {
-      headers: {
-        Authorization: authorization,
-      },
+    const response = await this.authService.requestWithAuth(async (token) => {
+      return await axios.get(`${this.url}${trackId}`, {
+        headers: {
+          Authorization: token,
+        },
+      });
     });
 
     const trackData: DetailedTrack = response.data;
@@ -46,10 +43,8 @@ export class TrackService {
     firstProfileTrackIds: string[],
     secondProfileTrackIds: string[],
   ): Promise<Track[]> {
-    const authorization = await this.getAccessTokenService.get();
     const firstProfileTracksData = await this.getBatchedDetailedTracks(
       firstProfileTrackIds,
-      authorization,
     );
 
     const firstProfileTracks: Track[] = firstProfileTracksData.map((track) => {
@@ -77,7 +72,6 @@ export class TrackService {
 
     const secondProfileTracksData = await this.getBatchedDetailedTracks(
       secondProfileTrackIds,
-      authorization,
     );
 
     const secondProfileTracks: Track[] = secondProfileTracksData.map(
@@ -166,7 +160,6 @@ export class TrackService {
 
   private async getBatchedDetailedTracks(
     trackIds: string[],
-    authorization: string,
   ): Promise<DetailedTrack[]> {
     const BATCH_SIZE = 50;
     const batches: string[][] = [];
@@ -175,12 +168,14 @@ export class TrackService {
     }
     return await Promise.all(
       batches.map(async (batch: string[]) => {
-        const response = await axios.get(`${this.url}?ids=${batch}`, {
-          headers: {
-            Authorization: authorization,
-          },
+        return await this.authService.requestWithAuth(async (token) => {
+          const response = await axios.get(`${this.url}?ids=${batch}`, {
+            headers: {
+              Authorization: token,
+            },
+          });
+          return response.data.tracks as DetailedTrack[];
         });
-        return response.data.tracks as DetailedTrack[];
       }),
     ).then((data) => {
       return data.flat();

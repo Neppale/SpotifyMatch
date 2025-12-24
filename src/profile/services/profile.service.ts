@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import { GetAccessTokenService } from '@Utils/auth/services/get-access-token.service';
-import { GetAccessToken } from '@Utils/auth/services/useCases/get-access-token';
+import { AuthService } from '@Utils/auth/services/auth.service';
 import { FindPlaylistIdsByUserIdService } from '@Playlist/services/find-playlist-ids-by-user-id.service';
 import { FindPlaylistIdsByUserId } from '@Playlist/services/useCases/find-playlist-ids-by-user-id';
 import { FindTrackIdsByPlaylistIdsService } from '@Playlist/services/find-track-ids-by-playlist-ids.service';
@@ -17,31 +16,29 @@ import { Track } from '@prisma/client';
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
   private readonly url = 'https://api.spotify.com/v1/users/';
-  private readonly getAccessTokenService: GetAccessToken;
   private readonly findPlaylistIdsByIdService: FindPlaylistIdsByUserId;
   private readonly findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIds;
   private readonly trackService: TrackService;
 
   constructor(
-    getAccessTokenService: GetAccessTokenService,
+    private readonly authService: AuthService,
     findPlaylistIdsByIdService: FindPlaylistIdsByUserIdService,
     findTrackIdsByPlaylistIdsService: FindTrackIdsByPlaylistIdsService,
     trackService: TrackService,
   ) {
-    this.getAccessTokenService = getAccessTokenService;
     this.findPlaylistIdsByIdService = findPlaylistIdsByIdService;
     this.findTrackIdsByPlaylistIdsService = findTrackIdsByPlaylistIdsService;
     this.trackService = trackService;
   }
 
   async validateProfile(profileId: string): Promise<void> {
-    const authorization = await this.getAccessTokenService.get();
-
     try {
-      await axios.get(`${this.url}${profileId}`, {
-        headers: {
-          Authorization: authorization,
-        },
+      await this.authService.requestWithAuth(async (token) => {
+        return await axios.get(`${this.url}${profileId}`, {
+          headers: {
+            Authorization: token,
+          },
+        });
       });
     } catch (error) {
       throw new BadRequestException(`Invalid profile ID: ${profileId}`);
