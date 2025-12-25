@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@Prisma/services/prisma.service';
-import { Prisma } from 'generated/prisma';
+import { Prisma, TrackVariant } from '@PrismaClient';
 
 @Injectable()
 export class TrackRepository {
@@ -10,9 +10,18 @@ export class TrackRepository {
     return await this.prismaService.getClient().track.createMany({ data });
   }
 
-  async createManySimilarTracks(data: Prisma.SimilarTrackCreateManyInput[]) {
+  async createManyTrackVariants(data: Prisma.TrackVariantCreateManyInput[]) {
     return await this.prismaService
       .getClient()
-      .similarTrack.createMany({ data });
+      .trackVariant.createMany({ data });
+  }
+
+  async checkIfTrackVariantExists(
+    trackId: string,
+    isSourceTrack: boolean,
+  ): Promise<TrackVariant> {
+    return await this.prismaService.getClient().trackVariant.findUnique({
+      where: { trackId_isSourceTrack: { trackId, isSourceTrack } },
+    });
   }
 }

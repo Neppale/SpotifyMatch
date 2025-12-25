@@ -13,7 +13,6 @@ datasource db {
 
 model Track {
   id           String         @id @default(uuid())
-  spotifyId    String         @unique @map("spotify_id")
   artist       String
   title        String
   album        String
@@ -21,10 +20,10 @@ model Track {
   durationMs   Int            @map("duration_ms")
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")
-  SimilarTrack SimilarTrack[]
+  TrackVariant TrackVariant[]
 }
 
-model SimilarTrack {
+model TrackVariant {
   id             String   @id @default(uuid())
   trackId        String   @map("track_id")
   Track          Track    @relation(fields: [trackId], references: [id])
@@ -32,6 +31,9 @@ model SimilarTrack {
   score          Int      
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
+  isSourceTrack  Boolean  @default(false) @map("is_source_track")
 
   @@index([spotifyId])
+  @@unique([trackId, isSourceTrack])
+  @@index([trackId, isSourceTrack])
 }

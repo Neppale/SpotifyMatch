@@ -5,6 +5,7 @@ import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import { Track } from 'generated/prisma';
 import { Item } from '@Playlist/models/detailed-playlist.model';
+import { Prisma } from '@PrismaClient';
 
 @Injectable()
 export class TrackService {
@@ -44,9 +45,8 @@ export class TrackService {
     firstProfileTrackIds: string[],
     secondProfileTrackIds: string[],
   ): Promise<Track[]> {
-    const firstProfileTracksData = await this.getBatchedDetailedTracks(
-      firstProfileTrackIds,
-    );
+    const firstProfileTracksData =
+      await this.getBatchedDetailedTracks(firstProfileTrackIds);
 
     const firstProfileTracks: Track[] = firstProfileTracksData.map((track) => {
       return {
@@ -174,7 +174,10 @@ export class TrackService {
     return tracks;
   }
 
-  private compareTracks(firstTrack: Track, secondTrack: Track): boolean {
+  private async compareTracks(
+    firstTrack: Track,
+    secondTrack: Track,
+  ): Promise<Prisma.TrackVariantCreateInput | Prisma.TrackCreateInput> {
     const SCORE_THRESHOLD = 3;
     let score = 0;
     if (firstTrack.artist === secondTrack.artist) score++;
@@ -182,8 +185,30 @@ export class TrackService {
     if (firstTrack.album === secondTrack.album) score++;
     if (firstTrack.releaseDate === secondTrack.releaseDate) score++;
     if (firstTrack.durationMs === secondTrack.durationMs) score++;
-    if (score >= SCORE_THRESHOLD) return true;
-    return false;
+    if (score >= SCORE_THRESHOLD) {
+      const isSourceTrack =
+        await this.trackRepository.checkIfTrackVariantExists(
+          firstTrack.id,
+          true,
+        );
+      if (!isSourceTrack) {
+        return {
+          artist: firstTrack.artist,
+          title: firstTrack.title,
+          album: firstTrack.album,
+          releaseDate: firstTrack.releaseDate,
+          durationMs: firstTrack.durationMs,
+        };
+      }
+    } else {
+      return {
+        artist: firstTrack.artist,
+        title: firstTrack.title,
+        album: firstTrack.album,
+        releaseDate: firstTrack.releaseDate,
+        durationMs: firstTrack.durationMs,
+      };
+    }
   }
 
   private async getBatchedDetailedTracks(
