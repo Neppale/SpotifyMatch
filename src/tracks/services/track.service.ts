@@ -120,7 +120,7 @@ export class TrackService {
       if (tracksFromLargerProfile) {
         for (const firstTrack of tracksFromSmallerProfile) {
           for (const secondTrack of tracksFromLargerProfile) {
-            if (this.compareTracks(firstTrack, secondTrack)) {
+            if (await this.compareTracks(firstTrack, secondTrack)) {
               const trackKey = firstTrack.spotifyId;
               if (!similarTrackHrefs.has(trackKey)) {
                 similarTrackHrefs.add(trackKey);
@@ -133,16 +133,16 @@ export class TrackService {
       }
     }
 
-    await this.trackRepository.createMany(
-      similarTracks.map((track) => ({
-        artist: track.artist,
-        spotifyId: track.spotifyId,
-        title: track.title,
-        album: track.album,
-        releaseDate: track.releaseDate,
-        durationMs: track.durationMs,
-      })),
-    );
+    // await this.trackRepository.createMany(
+    //   similarTracks.map((track) => ({
+    //     artist: track.artist,
+    //     spotifyId: track.spotifyId,
+    //     title: track.title,
+    //     album: track.album,
+    //     releaseDate: track.releaseDate,
+    //     durationMs: track.durationMs,
+    //   })),
+    // );
 
     return similarTracks;
   }
@@ -177,7 +177,7 @@ export class TrackService {
   private async compareTracks(
     firstTrack: Track,
     secondTrack: Track,
-  ): Promise<Prisma.TrackVariantCreateInput | Prisma.TrackCreateInput> {
+  ): Promise<boolean> {
     const SCORE_THRESHOLD = 3;
     let score = 0;
     if (firstTrack.artist === secondTrack.artist) score++;
@@ -185,29 +185,58 @@ export class TrackService {
     if (firstTrack.album === secondTrack.album) score++;
     if (firstTrack.releaseDate === secondTrack.releaseDate) score++;
     if (firstTrack.durationMs === secondTrack.durationMs) score++;
+
     if (score >= SCORE_THRESHOLD) {
-      const isSourceTrack =
-        await this.trackRepository.checkIfTrackVariantExists(
-          firstTrack.id,
-          true,
-        );
-      if (!isSourceTrack) {
-        return {
-          artist: firstTrack.artist,
-          title: firstTrack.title,
-          album: firstTrack.album,
-          releaseDate: firstTrack.releaseDate,
-          durationMs: firstTrack.durationMs,
-        };
-      }
+      await this.handleTrackVariants(firstTrack, secondTrack, score);
+      return true;
+    }
+
+    return false;
+  }
+
+  private async handleTrackVariants(
+    firstTrack: Track,
+    secondTrack: Track,
+    score: number,
+  ): Promise<void> {
+    const firstSourceTrack =
+      await this.trackRepository.findSourceTrackBySpotifyId(
+        firstTrack.spotifyId,
+      );
+    const secondSourceTrack =
+      await this.trackRepository.findSourceTrackBySpotifyId(
+        secondTrack.spotifyId,
+      );
+
+    const trueSourceTrack = firstSourceTrack || secondSourceTrack;
+    const nonSourceTrack = firstSourceTrack ? secondTrack : firstTrack;
+
+    if (trueSourceTrack) {
+      await this.trackRepository.upsertTrackVariant(
+        trueSourceTrack.id,
+        nonSourceTrack.spotifyId,
+        true,
+        score,
+      );
     } else {
-      return {
-        artist: firstTrack.artist,
-        title: firstTrack.title,
-        album: firstTrack.album,
-        releaseDate: firstTrack.releaseDate,
-        durationMs: firstTrack.durationMs,
-      };
+      const createdSourceTrack =
+        await this.trackRepository.createSourceTrackWithVariants(
+          {
+            artist: firstTrack.artist,
+            title: firstTrack.title,
+            album: firstTrack.album,
+            releaseDate: firstTrack.releaseDate,
+            durationMs: firstTrack.durationMs,
+          },
+          [firstTrack.spotifyId, secondTrack.spotifyId],
+          score,
+        );
+
+      await this.trackRepository.createVariantForSourceTrack(
+        createdSourceTrack.id,
+        secondTrack.spotifyId,
+        score,
+      );
     }
   }
 
