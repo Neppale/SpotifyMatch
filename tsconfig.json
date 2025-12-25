@@ -3,7 +3,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -13,6 +12,8 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "isolatedModules": true,
+    "skipLibCheck": true,
     "paths": {
       "@Playlist/*": ["src/playlist/*"],
       "@Prisma/*": ["src/prisma/*"],
