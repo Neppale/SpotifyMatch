@@ -5,7 +5,6 @@ import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import { Track } from 'generated/prisma';
 import { Item } from '@Playlist/models/detailed-playlist.model';
-import { Prisma } from '@PrismaClient';
 
 @Injectable()
 export class TrackService {
@@ -45,60 +44,54 @@ export class TrackService {
     firstProfileTrackIds: string[],
     secondProfileTrackIds: string[],
   ): Promise<Track[]> {
-    const firstProfileTracksData =
-      await this.getBatchedDetailedTracks(firstProfileTrackIds);
+    const [firstProfileTracksData, secondProfileTracksData] = await Promise.all(
+      [
+        this.getBatchedDetailedTracks(firstProfileTrackIds),
+        this.getBatchedDetailedTracks(secondProfileTrackIds),
+      ],
+    );
 
-    const firstProfileTracks: Track[] = firstProfileTracksData.map((track) => {
-      return {
-        id: track.id,
-        spotifyId: track.id,
-        artist: track.artists[0]?.name,
-        title: track.name,
-        album: track.album.name,
-        releaseDate: track.album.release_date,
-        durationMs: track.duration_ms,
+    const firstProfileArtistTracks = new Map<string, Track[]>();
+    for (const trackData of firstProfileTracksData) {
+      const track: Track = {
+        id: trackData.id,
+        spotifyId: trackData.id,
+        artist: trackData.artists[0]?.name,
+        title: trackData.name,
+        album: trackData.album.name,
+        releaseDate: trackData.album.release_date,
+        durationMs: trackData.duration_ms,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-    });
-
-    const firstProfileArtistTracks = new Map<string, Track[]>();
-    firstProfileTracks.forEach((track) => {
-      if (firstProfileArtistTracks.has(track.artist)) {
-        firstProfileArtistTracks.get(track.artist).push(track);
+      const existing = firstProfileArtistTracks.get(track.artist);
+      if (existing) {
+        existing.push(track);
       } else {
         firstProfileArtistTracks.set(track.artist, [track]);
       }
-    });
-
-    const secondProfileTracksData = await this.getBatchedDetailedTracks(
-      secondProfileTrackIds,
-    );
-
-    const secondProfileTracks: Track[] = secondProfileTracksData.map(
-      (track) => {
-        return {
-          id: track.id,
-          spotifyId: track.id,
-          artist: track.artists[0]?.name,
-          title: track.name,
-          album: track.album.name,
-          releaseDate: track.album.release_date,
-          durationMs: track.duration_ms,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      },
-    );
+    }
 
     const secondProfileArtistTracks = new Map<string, Track[]>();
-    secondProfileTracks.forEach((track) => {
-      if (secondProfileArtistTracks.has(track.artist)) {
-        secondProfileArtistTracks.get(track.artist).push(track);
+    for (const trackData of secondProfileTracksData) {
+      const track: Track = {
+        id: trackData.id,
+        spotifyId: trackData.id,
+        artist: trackData.artists[0]?.name,
+        title: trackData.name,
+        album: trackData.album.name,
+        releaseDate: trackData.album.release_date,
+        durationMs: trackData.duration_ms,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const existing = secondProfileArtistTracks.get(track.artist);
+      if (existing) {
+        existing.push(track);
       } else {
         secondProfileArtistTracks.set(track.artist, [track]);
       }
-    });
+    }
 
     const similarTracks: Track[] = [];
     const similarTrackHrefs = new Set<string>();
@@ -132,17 +125,6 @@ export class TrackService {
         }
       }
     }
-
-    // await this.trackRepository.createMany(
-    //   similarTracks.map((track) => ({
-    //     artist: track.artist,
-    //     spotifyId: track.spotifyId,
-    //     title: track.title,
-    //     album: track.album,
-    //     releaseDate: track.releaseDate,
-    //     durationMs: track.durationMs,
-    //   })),
-    // );
 
     return similarTracks;
   }

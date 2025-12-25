@@ -97,16 +97,24 @@ export class ProfileService {
       new Set(secondProfileTrackIds),
     ];
 
-    const sameTracks = new Set(
-      [...firstProfileTrackIdsSet].filter((currentTrack) =>
-        secondProfileTrackIdsSet.has(currentTrack),
-      ),
-    );
+    const sameTracks = new Set<string>();
+    const smallerSet =
+      firstProfileTrackIdsSet.size <= secondProfileTrackIdsSet.size
+        ? firstProfileTrackIdsSet
+        : secondProfileTrackIdsSet;
+    const largerSet =
+      smallerSet === firstProfileTrackIdsSet
+        ? secondProfileTrackIdsSet
+        : firstProfileTrackIdsSet;
+    for (const track of smallerSet) {
+      if (largerSet.has(track)) {
+        sameTracks.add(track);
+      }
+    }
 
     const remainingFirstProfileTracks = [...firstProfileTrackIdsSet].filter(
       (currentTrack) => !sameTracks.has(currentTrack),
     );
-
     const remainingSecondProfileTracks = [...secondProfileTrackIdsSet].filter(
       (currentTrack) => !sameTracks.has(currentTrack),
     );
