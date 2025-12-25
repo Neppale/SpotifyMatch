@@ -68,7 +68,8 @@
       "^@Utils/(.*)$": "<rootDir>/utils/$1",
       "^@Playlist/(.*)$": "<rootDir>/playlist/$1",
       "^@Prisma/(.*)$": "<rootDir>/prisma/$1",
-      "^@Profile/(.*)$": "<rootDir>/profile/$1"
+      "^@Profile/(.*)$": "<rootDir>/profile/$1",
+      "^@PrismaClient": "<rootDir>/../generated/prisma/client"
     }
   },
   "devDependencies": {
