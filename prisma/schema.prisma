@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -24,16 +24,42 @@ model Track {
 }
 
 model TrackVariant {
-  id             String   @id @default(uuid())
-  trackId        String   @map("track_id")
-  Track          Track    @relation(fields: [trackId], references: [id])
-  spotifyId      String   @map("spotify_id")
-  score          Int      
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  isSourceTrack  Boolean  @default(false) @map("is_source_track")
+  id             String           @id @default(uuid())
+  trackId        String           @map("track_id")
+  Track          Track            @relation(fields: [trackId], references: [id])
+  spotifyId      String           @map("spotify_id")
+  score          Int
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  isSourceTrack  Boolean          @default(false) @map("is_source_track")
+  ProfileLibrary ProfileLibrary[]
 
-  @@index([spotifyId])
   @@unique([trackId, isSourceTrack])
+  @@index([spotifyId])
   @@index([trackId, isSourceTrack])
+}
+
+model Profile {
+  id             String           @unique // will be the Spotify user ID
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  snapshotId     String           @map("snapshot_id")
+  ProfileLibrary ProfileLibrary[]
+
+  @@index([id])
+}
+
+model ProfileLibrary {
+  id             String       @id @default(uuid())
+  profileId      String       @map("profile_id")
+  profile        Profile      @relation(fields: [profileId], references: [id])
+  trackVariantId String       @map("track_variant_id")
+  trackVariant   TrackVariant @relation(fields: [trackVariantId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@unique([profileId, trackVariantId])
+  @@index([profileId])
+  @@index([trackVariantId])
+  @@index([profileId, trackVariantId])
 }

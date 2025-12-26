@@ -12,4 +12,8 @@ export class CompareProfileDto {
   @IsBoolean()
   @IsOptional()
   advanced: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  saveResults: boolean = false;
 }

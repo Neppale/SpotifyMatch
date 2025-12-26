@@ -5,21 +5,24 @@ import { TrackService } from '@Tracks/services/track.service';
 import { ProfileComparisonFormattedResponse } from '@Profile/models/profile-comparison.model';
 import { Track } from 'generated/prisma';
 import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
-
+import { CompareProfileDto } from '@Profile/models/compare-profile.dto';
+import { Response } from 'express';
+import crypto from 'crypto';
+import { ProfileRepository } from '@Profile/services/profile.repository';
 @Injectable()
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
   private readonly url = 'https://api.spotify.com/v1/users/';
-  private readonly trackService: TrackService;
 
   constructor(
     private readonly authService: AuthService,
-    trackService: TrackService,
-  ) {
-    this.trackService = trackService;
-  }
+    private readonly trackService: TrackService,
+    private readonly profileRepository: ProfileRepository,
+  ) {}
 
-  async findPlaylists(profileId: string): Promise<string[]> {
+  async findPlaylists(
+    profileId: string,
+  ): Promise<{ playlistId: string; snapshotId: string }[]> {
     const response = await this.authService.requestWithAuth(async (token) => {
       return await axios.get(`${this.url}${profileId}/playlists`, {
         headers: {
@@ -31,19 +34,13 @@ export class ProfileService {
     const playlistData: ProfilePlaylistData = response.data;
     if (!playlistData.items) return [];
 
-    const playlistHrefs: string[] = playlistData.items.map(
-      (item) => item.tracks.href,
-    );
+    const playlists: { playlistId: string; snapshotId: string }[] =
+      playlistData.items.map((item) => ({
+        playlistId: item.id,
+        snapshotId: item.snapshot_id,
+      }));
 
-    playlistHrefs.forEach((href, index) => {
-      playlistHrefs[index] = href.replace(
-        'https://api.spotify.com/v1/playlists/',
-        '',
-      );
-      playlistHrefs[index] = playlistHrefs[index].replace('/tracks', '');
-    });
-
-    return playlistHrefs;
+    return playlists;
   }
 
   async validateProfile(profileId: string): Promise<void> {
@@ -61,32 +58,22 @@ export class ProfileService {
   }
 
   async compareProfiles(
-    firstProfileId: string,
-    secondProfileId: string,
-    advanced = false,
-  ): Promise<ProfileComparisonFormattedResponse> {
-    if (!firstProfileId || !secondProfileId) {
-      throw new BadRequestException('Missing profile id');
-    }
-
-    await Promise.all([
-      this.validateProfile(firstProfileId),
-      this.validateProfile(secondProfileId),
-    ]);
-
-    this.logger.log(
-      `Comparing profiles: ${firstProfileId} and ${secondProfileId} with advanced parameter set to ${advanced}`,
-    );
-
+    context: Response,
+    { firstProfile, secondProfile, advanced, saveResults }: CompareProfileDto,
+  ): Promise<void> {
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
       await Promise.all([
-        this.findPlaylists(firstProfileId),
-        this.findPlaylists(secondProfileId),
+        this.findPlaylists(firstProfile),
+        this.findPlaylists(secondProfile),
       ]);
 
     const [firstProfileTrackIds, secondProfileTrackIds] = await Promise.all([
-      this.trackService.getTrackIdsByPlaylistIds(firstProfilePlaylistIds),
-      this.trackService.getTrackIdsByPlaylistIds(secondProfilePlaylistIds),
+      this.trackService.getTrackIdsByPlaylistIds(
+        firstProfilePlaylistIds.map((playlist) => playlist.playlistId),
+      ),
+      this.trackService.getTrackIdsByPlaylistIds(
+        secondProfilePlaylistIds.map((playlist) => playlist.playlistId),
+      ),
     ]);
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
@@ -157,12 +144,57 @@ export class ProfileService {
     };
 
     this.logger.log(
-      `Profiles ${firstProfileId} and ${secondProfileId} have a ${percentage}% match with ${
+      `Profiles ${firstProfile} and ${secondProfile} have a ${percentage}% match with ${
         sameTracks.size
       } same tracks and ${probableMatches?.length || 0} probable matches`,
     );
 
-    return formattedResponse;
+    context.status(200).send(formattedResponse);
+    if (saveResults) {
+      const firstProfileSnapshots = [
+        ...firstProfilePlaylistIds.map((playlist) => playlist.snapshotId),
+      ]
+        .sort()
+        .join('-');
+      const firstProfileSnapshotId = await this.buildSnapshotId(
+        firstProfileSnapshots,
+      );
+      await this.saveResults(
+        firstProfile,
+        firstProfileSnapshotId,
+        firstProfileTrackIds,
+      );
+
+      const secondProfileSnapshots = [
+        ...secondProfilePlaylistIds.map((playlist) => playlist.snapshotId),
+      ]
+        .sort()
+        .join('-');
+      const secondProfileSnapshotId = await this.buildSnapshotId(
+        secondProfileSnapshots,
+      );
+      await this.saveResults(
+        secondProfile,
+        secondProfileSnapshotId,
+        secondProfileTrackIds,
+      );
+    }
+  }
+
+  async saveResults(
+    profileId: string,
+    snapshotId: string,
+    spotifyIds: string[],
+  ): Promise<void> {
+    await this.profileRepository.upsertProfile(
+      profileId,
+      spotifyIds,
+      snapshotId,
+    );
+  }
+
+  private async buildSnapshotId(snapshotIds: string): Promise<string> {
+    return crypto.createHash('md5').update(snapshotIds).digest('hex');
   }
 
   private buildMessage(
