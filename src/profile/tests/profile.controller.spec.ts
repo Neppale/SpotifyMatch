@@ -44,7 +44,7 @@ describe('ProfileController', () => {
       secondProfile: 'secondProfile',
     };
     const cachedResult: ProfileComparison = {
-      matches: [],
+      exactTracks: [],
       percentage: 0,
       sameTracks: 0,
       totalTracks: 0,

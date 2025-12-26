@@ -2,10 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { AuthService } from '@Utils/auth/services/auth.service';
 import { TrackService } from '@Tracks/services/track.service';
-import {
-  ProfileComparison,
-  Verdict,
-} from '@Profile/models/profile-comparison.model';
+import { ProfileComparisonFormattedResponse } from '@Profile/models/profile-comparison.model';
 import { Track } from 'generated/prisma';
 import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
 
@@ -67,7 +64,7 @@ export class ProfileService {
     firstProfileId: string,
     secondProfileId: string,
     advanced = false,
-  ): Promise<ProfileComparison> {
+  ): Promise<ProfileComparisonFormattedResponse> {
     if (!firstProfileId || !secondProfileId) {
       throw new BadRequestException('Missing profile id');
     }
@@ -138,8 +135,6 @@ export class ProfileService {
               100,
           );
 
-    const verdict = this.getVerdict(percentage);
-
     const matches: Track[] = [];
     const trackPromises = [];
     for (const track of sameTracks) {
@@ -149,14 +144,16 @@ export class ProfileService {
     const tracks = await Promise.all(trackPromises);
     matches.push(...tracks);
 
-    const profileComparison: ProfileComparison = {
-      percentage,
-      verdict,
-      matches,
-      sameTracks: sameTracks.size,
-      probableMatches,
-      totalProbableMatches: probableMatches?.length,
-      totalTracks,
+    const formattedResponse: ProfileComparisonFormattedResponse = {
+      message: this.getMessage(
+        percentage,
+        totalTracks,
+        matches.length,
+        probableMatches?.length,
+      ),
+      callToAction: 'Listen to your compatible tracks',
+      similarTracks: probableMatches,
+      exactTracks: matches,
     };
 
     this.logger.log(
@@ -165,19 +162,32 @@ export class ProfileService {
       } same tracks and ${probableMatches?.length || 0} probable matches`,
     );
 
-    return profileComparison;
+    return formattedResponse;
   }
 
-  private getVerdict(percentage: number): Verdict {
-    if (percentage === 100) {
-      return Verdict.PERFECT_MATCH;
+  private getMessage(
+    percentage: number,
+    totalTracks: number,
+    exactTracks: number,
+    similarTracks: number,
+  ): string {
+    const reactionMessage = this.getReactionMessage(percentage);
+    const analysisMessage = `I analyzed ${totalTracks} tracks and found ${exactTracks} exact matches and ${similarTracks} probable matches between you two!`;
+    const callToAction = 'Listen to your compatible tracks';
+    return `${reactionMessage}\n${analysisMessage}\n${callToAction}`;
+  }
+
+  private getReactionMessage(percentage: number): string {
+    // TODO: Build this later to gather AI generated reaction messages based on the most popular song they have in common. Just for funsies :)
+    switch (percentage) {
+      case 100:
+        return 'You only listen to the same tracks! You are a perfect match!';
+      case 80:
+        return 'You gotta feel that heat, baby! Here are your results:';
+      case 50:
+        return 'You have some stuff in common, but are pretty different overall. Here are your results:';
+      default:
+        return 'Yeah, I think this one is a no-go. Sorry about that, but here are your results:';
     }
-    if (percentage > 80) {
-      return Verdict.GOOD_MATCH;
-    }
-    if (percentage > 50) {
-      return Verdict.BAD_MATCH;
-    }
-    return Verdict.NO_MATCH;
   }
 }

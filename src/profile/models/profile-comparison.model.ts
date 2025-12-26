@@ -1,18 +1,17 @@
 import { Track } from 'generated/prisma';
 
 export class ProfileComparison {
-  sameTracks: number;
-  totalTracks: number;
+  totalExactTracks: number;
+  totalTracksAnalyzed: number;
   percentage: number;
-  matches: Track[];
-  probableMatches?: Track[];
-  totalProbableMatches?: number;
-  verdict: Verdict;
+  exactTracks: Track[];
+  similarTracks?: Track[];
+  totalSimilarTracks?: number;
 }
 
-export enum Verdict {
-  PERFECT_MATCH = 'Perfect Match!',
-  GOOD_MATCH = 'Good Match!',
-  BAD_MATCH = 'Bad Match!',
-  NO_MATCH = 'No Match!',
+export class ProfileComparisonFormattedResponse {
+  message: string;
+  callToAction: string;
+  similarTracks: Track[];
+  exactTracks: Track[];
 }
