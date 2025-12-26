@@ -6,22 +6,16 @@ import { Prisma, TrackVariant, Track } from '@PrismaClient';
 export class TrackRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createMany(data: Prisma.TrackCreateManyInput[]) {
-    return await this.prismaService.getClient().track.createMany({ data });
-  }
-
-  async createManyTrackVariants(data: Prisma.TrackVariantCreateManyInput[]) {
-    return await this.prismaService
-      .getClient()
-      .trackVariant.createMany({ data });
-  }
-
-  async checkIfTrackVariantExists(
-    trackId: string,
-    isSourceTrack: boolean,
-  ): Promise<TrackVariant> {
-    return await this.prismaService.getClient().trackVariant.findUnique({
-      where: { trackId_isSourceTrack: { trackId, isSourceTrack } },
+  async getTracksBySpotifyId(
+    spotifyIds: string[],
+  ): Promise<Prisma.TrackVariantGetPayload<{ include: { Track: true } }>[]> {
+    return await this.prismaService.getClient().trackVariant.findMany({
+      where: {
+        spotifyId: { in: spotifyIds },
+      },
+      include: {
+        Track: true,
+      },
     });
   }
 

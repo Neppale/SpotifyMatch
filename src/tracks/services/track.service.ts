@@ -44,14 +44,81 @@ export class TrackService {
     firstProfileTrackIds: string[],
     secondProfileTrackIds: string[],
   ): Promise<Track[]> {
+    const [existingFirstProfileTracks, existingSecondProfileTracks] =
+      await Promise.all([
+        this.trackRepository.getTracksBySpotifyId(firstProfileTrackIds),
+        this.trackRepository.getTracksBySpotifyId(secondProfileTrackIds),
+      ]);
+
+    const firstProfileTrackIdsSet = new Set(firstProfileTrackIds);
+    const secondProfileTrackIdsSet = new Set(secondProfileTrackIds);
+
+    const existingFirstTracksMap = new Map<string, Track>();
+    const existingSecondTracksMap = new Map<string, Track>();
+
+    for (const variant of existingFirstProfileTracks) {
+      if (firstProfileTrackIdsSet.has(variant.spotifyId)) {
+        const track = variant.Track;
+        existingFirstTracksMap.set(variant.spotifyId, {
+          id: track.id,
+          spotifyId: variant.spotifyId,
+          artist: track.artist,
+          title: track.title,
+          album: track.album,
+          releaseDate: track.releaseDate,
+          durationMs: track.durationMs,
+          createdAt: track.createdAt,
+          updatedAt: track.updatedAt,
+        });
+      }
+    }
+
+    for (const variant of existingSecondProfileTracks) {
+      if (secondProfileTrackIdsSet.has(variant.spotifyId)) {
+        const track = variant.Track;
+        existingSecondTracksMap.set(variant.spotifyId, {
+          id: track.id,
+          spotifyId: variant.spotifyId,
+          artist: track.artist,
+          title: track.title,
+          album: track.album,
+          releaseDate: track.releaseDate,
+          durationMs: track.durationMs,
+          createdAt: track.createdAt,
+          updatedAt: track.updatedAt,
+        });
+      }
+    }
+
+    const remainingFirstProfileTrackIds = firstProfileTrackIds.filter(
+      (trackId) => !existingFirstTracksMap.has(trackId),
+    );
+    const remainingSecondProfileTrackIds = secondProfileTrackIds.filter(
+      (trackId) => !existingSecondTracksMap.has(trackId),
+    );
+
     const [firstProfileTracksData, secondProfileTracksData] = await Promise.all(
       [
-        this.getBatchedDetailedTracks(firstProfileTrackIds),
-        this.getBatchedDetailedTracks(secondProfileTrackIds),
+        remainingFirstProfileTrackIds.length > 0
+          ? this.getBatchedDetailedTracks(remainingFirstProfileTrackIds)
+          : Promise.resolve([]),
+        remainingSecondProfileTrackIds.length > 0
+          ? this.getBatchedDetailedTracks(remainingSecondProfileTrackIds)
+          : Promise.resolve([]),
       ],
     );
 
     const firstProfileArtistTracks = new Map<string, Track[]>();
+
+    for (const track of existingFirstTracksMap.values()) {
+      const existing = firstProfileArtistTracks.get(track.artist);
+      if (existing) {
+        existing.push(track);
+      } else {
+        firstProfileArtistTracks.set(track.artist, [track]);
+      }
+    }
+
     for (const trackData of firstProfileTracksData) {
       const track: Track = {
         id: trackData.id,
@@ -73,6 +140,16 @@ export class TrackService {
     }
 
     const secondProfileArtistTracks = new Map<string, Track[]>();
+
+    for (const track of existingSecondTracksMap.values()) {
+      const existing = secondProfileArtistTracks.get(track.artist);
+      if (existing) {
+        existing.push(track);
+      } else {
+        secondProfileArtistTracks.set(track.artist, [track]);
+      }
+    }
+
     for (const trackData of secondProfileTracksData) {
       const track: Track = {
         id: trackData.id,
@@ -112,13 +189,14 @@ export class TrackService {
       const tracksFromLargerProfile = profileWithMostTracks.get(artistName);
       if (tracksFromLargerProfile) {
         for (const firstTrack of tracksFromSmallerProfile) {
+          const trackKey = firstTrack.spotifyId;
+          if (similarTrackHrefs.has(trackKey)) {
+            continue;
+          }
           for (const secondTrack of tracksFromLargerProfile) {
             if (await this.compareTracks(firstTrack, secondTrack)) {
-              const trackKey = firstTrack.spotifyId;
-              if (!similarTrackHrefs.has(trackKey)) {
-                similarTrackHrefs.add(trackKey);
-                similarTracks.push(firstTrack);
-              }
+              similarTrackHrefs.add(trackKey);
+              similarTracks.push(firstTrack);
               break;
             }
           }
