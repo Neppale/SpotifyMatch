@@ -145,13 +145,13 @@ export class ProfileService {
     matches.push(...tracks);
 
     const formattedResponse: ProfileComparisonFormattedResponse = {
-      message: this.getMessage(
+      message: this.buildMessage(
         percentage,
         totalTracks,
         matches.length,
         probableMatches?.length,
       ),
-      callToAction: 'Listen to your compatible tracks',
+      callToAction: this.buildCallToAction(),
       similarTracks: probableMatches,
       exactTracks: matches,
     };
@@ -165,7 +165,7 @@ export class ProfileService {
     return formattedResponse;
   }
 
-  private getMessage(
+  private buildMessage(
     percentage: number,
     totalTracks: number,
     exactTracks: number,
@@ -173,8 +173,7 @@ export class ProfileService {
   ): string {
     const reactionMessage = this.getReactionMessage(percentage);
     const analysisMessage = `I analyzed ${totalTracks} tracks and found ${exactTracks} exact matches and ${similarTracks} probable matches between you two!`;
-    const callToAction = 'Listen to your compatible tracks';
-    return `${reactionMessage}\n${analysisMessage}\n${callToAction}`;
+    return `${reactionMessage}\n${analysisMessage}`;
   }
 
   private getReactionMessage(percentage: number): string {
@@ -189,5 +188,10 @@ export class ProfileService {
       default:
         return 'Yeah, I think this one is a no-go. Sorry about that, but here are your results:';
     }
+  }
+
+  private buildCallToAction(): string {
+    // TODO: Build this later to gather AI generated call to action messages based on the most popular song they have in common. Just for funsies :)
+    return "...you're not even that into each other anyway, right? Wanna try again?";
   }
 }

@@ -1,7 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, Logger } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { Request, Response } from 'express';
-import { ProfileParameters } from '@Profile/models/profile.parameters';
+import { CompareProfileDto } from '@Profile/models/compare-profile.dto';
 
 @Catch(AxiosError)
 export class AxiosExceptionFilter implements ExceptionFilter {
@@ -28,7 +28,7 @@ export class AxiosExceptionFilter implements ExceptionFilter {
         break;
     }
 
-    const body = request.body as ProfileParameters;
+    const body = request.body as CompareProfileDto;
     this.logger.error(
       `User had a ${statusCode} error comparing profiles ${body.firstProfile} and ${body.secondProfile} with advanced being ${body.advanced}.`,
     );
