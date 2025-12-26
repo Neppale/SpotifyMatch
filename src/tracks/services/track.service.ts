@@ -234,6 +234,28 @@ export class TrackService {
     return tracks;
   }
 
+  async createTrackVariants(spotifyIds: string[]): Promise<void> {
+    const tracks = await this.getBatchedDetailedTracks(spotifyIds);
+    for (const track of tracks) {
+      const newTrack: Track = {
+        id: track.id,
+        spotifyId: track.id,
+        artist: track.artists[0]?.name,
+        title: track.name,
+        album: track.album.name,
+        releaseDate: track.album.release_date,
+        durationMs: track.duration_ms,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      await this.trackRepository.createSourceTrackWithVariants(
+        newTrack,
+        [track.id],
+        5,
+      );
+    }
+  }
+
   private async compareTracks(
     firstTrack: Track,
     secondTrack: Track,

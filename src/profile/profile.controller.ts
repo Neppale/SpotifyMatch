@@ -1,6 +1,5 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { CompareProfileDto } from '@Profile/models/compare-profile.dto';
-import { ProfileComparisonFormattedResponse } from '@Profile/models/profile-comparison.model';
 import { ProfileService } from '@Profile/services/profile.service';
 import { Response } from 'express';
 
@@ -12,7 +11,7 @@ export class ProfileController {
   async compare(
     @Body()
     { firstProfile, secondProfile, advanced, saveResults }: CompareProfileDto,
-    @Req() context: Response,
+    @Res() context: Response,
   ): Promise<void> {
     return await this.profileService.compareProfiles(context, {
       firstProfile,

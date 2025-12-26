@@ -96,6 +96,8 @@ export class ProfileService {
       }
     }
 
+    await this.trackService.createTrackVariants(Array.from(sameTracks));
+
     const remainingFirstProfileTracks = [...firstProfileTrackIdsSet].filter(
       (currentTrack) => !sameTracks.has(currentTrack),
     );
@@ -103,7 +105,7 @@ export class ProfileService {
       (currentTrack) => !sameTracks.has(currentTrack),
     );
 
-    const probableMatches = advanced
+    const similarTracks = advanced
       ? await this.trackService.getSimilarTracks(
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
@@ -118,7 +120,7 @@ export class ProfileService {
       totalTracks === 0
         ? 0
         : Math.round(
-            ((sameTracks.size + (probableMatches?.length || 0)) / totalTracks) *
+            ((sameTracks.size + (similarTracks?.length || 0)) / totalTracks) *
               100,
           );
 
@@ -136,61 +138,50 @@ export class ProfileService {
         percentage,
         totalTracks,
         matches.length,
-        probableMatches?.length,
+        similarTracks?.length,
       ),
       callToAction: this.buildCallToAction(),
-      similarTracks: probableMatches,
+      similarTracks,
       exactTracks: matches,
     };
 
     this.logger.log(
       `Profiles ${firstProfile} and ${secondProfile} have a ${percentage}% match with ${
         sameTracks.size
-      } same tracks and ${probableMatches?.length || 0} probable matches`,
+      } same tracks and ${similarTracks?.length || 0} probable matches`,
     );
 
     context.status(200).send(formattedResponse);
+
     if (saveResults) {
-      const firstProfileSnapshots = [
-        ...firstProfilePlaylistIds.map((playlist) => playlist.snapshotId),
-      ]
-        .sort()
-        .join('-');
-      const firstProfileSnapshotId = await this.buildSnapshotId(
-        firstProfileSnapshots,
-      );
-      await this.saveResults(
-        firstProfile,
-        firstProfileSnapshotId,
-        firstProfileTrackIds,
-      );
-
-      const secondProfileSnapshots = [
-        ...secondProfilePlaylistIds.map((playlist) => playlist.snapshotId),
-      ]
-        .sort()
-        .join('-');
-      const secondProfileSnapshotId = await this.buildSnapshotId(
-        secondProfileSnapshots,
-      );
-      await this.saveResults(
-        secondProfile,
-        secondProfileSnapshotId,
-        secondProfileTrackIds,
-      );
+      const [firstProfileSnapshotId, secondProfileSnapshotId] =
+        await Promise.all([
+          this.buildSnapshotId(
+            firstProfilePlaylistIds
+              .map((playlist) => playlist.snapshotId)
+              .sort()
+              .join('-'),
+          ),
+          this.buildSnapshotId(
+            secondProfilePlaylistIds
+              .map((playlist) => playlist.snapshotId)
+              .sort()
+              .join('-'),
+          ),
+        ]);
+      await Promise.all([
+        this.profileRepository.upsertProfile(
+          firstProfile,
+          firstProfileTrackIds,
+          firstProfileSnapshotId,
+        ),
+        this.profileRepository.upsertProfile(
+          secondProfile,
+          secondProfileTrackIds,
+          secondProfileSnapshotId,
+        ),
+      ]);
     }
-  }
-
-  async saveResults(
-    profileId: string,
-    snapshotId: string,
-    spotifyIds: string[],
-  ): Promise<void> {
-    await this.profileRepository.upsertProfile(
-      profileId,
-      spotifyIds,
-      snapshotId,
-    );
   }
 
   private async buildSnapshotId(snapshotIds: string): Promise<string> {

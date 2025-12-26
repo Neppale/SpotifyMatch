@@ -26,7 +26,7 @@ model Track {
 model TrackVariant {
   id             String           @id @default(uuid())
   trackId        String           @map("track_id")
-  Track          Track            @relation(fields: [trackId], references: [id])
+  Track          Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
   spotifyId      String           @map("spotify_id")
   score          Int
   createdAt      DateTime         @default(now()) @map("created_at")
@@ -52,7 +52,7 @@ model Profile {
 model ProfileLibrary {
   id             String       @id @default(uuid())
   profileId      String       @map("profile_id")
-  profile        Profile      @relation(fields: [profileId], references: [id])
+  profile        Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
   trackVariantId String       @map("track_variant_id")
   trackVariant   TrackVariant @relation(fields: [trackVariantId], references: [id])
   createdAt      DateTime     @default(now()) @map("created_at")
