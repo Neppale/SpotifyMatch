@@ -34,7 +34,7 @@ export class TrackProcessingService {
 
   async processProfiles(data: ProcessProfilesMessage): Promise<void> {
     this.logger.log(
-      `Processing ${data.profiles.length} profile(s) with track processing`,
+      `Processing ${data.profiles.length} profile(s) with track processing for session ${data.sessionId}`,
     );
 
     const allSpotifyIds = new Set<string>();

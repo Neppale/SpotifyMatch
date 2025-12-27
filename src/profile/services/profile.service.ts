@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import axios from 'axios';
 import { AuthService } from '@Utils/auth/services/auth.service';
 import { TrackService } from '@Tracks/services/track.service';
@@ -16,6 +18,7 @@ export class ProfileService {
   constructor(
     private readonly authService: AuthService,
     private readonly trackService: TrackService,
+    @InjectQueue('process_tracks') private readonly processTracksQueue: Queue,
   ) {}
 
   async findPlaylists(
@@ -58,6 +61,7 @@ export class ProfileService {
   async compareProfiles(
     context: Response,
     { firstProfile, secondProfile, advanced, saveResults }: CompareProfileDto,
+    sessionId: string,
   ): Promise<void> {
     const [firstProfilePlaylistIds, secondProfilePlaylistIds] =
       await Promise.all([
@@ -73,6 +77,27 @@ export class ProfileService {
         secondProfilePlaylistIds.map((playlist) => playlist.playlistId),
       ),
     ]);
+
+    if (saveResults) {
+      await this.sendProfileDataToProcess(sessionId, [
+        {
+          profileId: firstProfile,
+          spotifyIds: firstProfileTrackIds,
+          snapshotId: firstProfilePlaylistIds
+            .map((p) => p.snapshotId)
+            .sort()
+            .join('-'),
+        },
+        {
+          profileId: secondProfile,
+          spotifyIds: secondProfileTrackIds,
+          snapshotId: secondProfilePlaylistIds
+            .map((p) => p.snapshotId)
+            .sort()
+            .join('-'),
+        },
+      ]);
+    }
 
     const [firstProfileTrackIdsSet, secondProfileTrackIdsSet] = [
       new Set(firstProfileTrackIds),
@@ -178,5 +203,23 @@ export class ProfileService {
   private buildCallToAction(): string {
     // TODO: Build this later to gather AI generated call to action messages based on the most popular song they have in common. Just for funsies :)
     return "...you're not even that into each other anyway, right? Wanna try again?";
+  }
+
+  async sendProfileDataToProcess(
+    sessionId: string,
+    profiles: {
+      spotifyIds: string[];
+      snapshotId: string;
+      profileId: string;
+    }[],
+  ): Promise<void> {
+    await this.processTracksQueue.add('process_profiles', {
+      sessionId,
+      profiles,
+    });
+
+    this.logger.log(
+      `Sent ${profiles.length} profile(s) to process_tracks queue for session ${sessionId}`,
+    );
   }
 }
