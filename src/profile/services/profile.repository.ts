@@ -5,12 +5,6 @@ import { PrismaService } from '@Prisma/services/prisma.service';
 export class ProfileRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  /**
-   * Upsert profile and attach TrackVariants via ProfileLibrary.
-   * @param profileId string - Spotify user id
-   * @param spotifyIds string[] - Spotify track ids (used for TrackVariant)
-   * @param snapshotId string - Spotify snapshot id
-   */
   async upsertProfile(
     profileId: string,
     spotifyIds: string[],
@@ -36,10 +30,8 @@ export class ProfileRepository {
         updatedAt: new Date(),
         ProfileLibrary: {
           deleteMany: {},
-          create: variantIds.map((trackVariantId) => ({
-            trackVariant: {
-              connect: { id: trackVariantId },
-            },
+          connect: variantIds.map((id) => ({
+            id,
           })),
         },
       },
@@ -47,10 +39,8 @@ export class ProfileRepository {
         id: profileId,
         snapshotId,
         ProfileLibrary: {
-          create: variantIds.map((trackVariantId) => ({
-            trackVariant: {
-              connect: { id: trackVariantId },
-            },
+          connect: variantIds.map((id) => ({
+            id,
           })),
         },
       },

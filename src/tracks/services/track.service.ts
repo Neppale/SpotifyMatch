@@ -182,6 +182,8 @@ export class TrackService {
         ? firstProfileArtistTracks
         : secondProfileArtistTracks;
 
+    const compareTrackTasks: Promise<void>[] = [];
+
     for (const [
       artistName,
       tracksFromSmallerProfile,
@@ -193,16 +195,24 @@ export class TrackService {
           if (similarTrackHrefs.has(trackKey)) {
             continue;
           }
-          for (const secondTrack of tracksFromLargerProfile) {
-            if (await this.compareTracks(firstTrack, secondTrack)) {
-              similarTrackHrefs.add(trackKey);
-              similarTracks.push(firstTrack);
-              break;
-            }
-          }
+          compareTrackTasks.push(
+            (async () => {
+              for (const secondTrack of tracksFromLargerProfile) {
+                if (await this.compareTracks(firstTrack, secondTrack)) {
+                  if (!similarTrackHrefs.has(trackKey)) {
+                    similarTrackHrefs.add(trackKey);
+                    similarTracks.push(firstTrack);
+                  }
+                  break;
+                }
+              }
+            })(),
+          );
         }
       }
     }
+
+    await Promise.all(compareTrackTasks);
 
     return similarTracks;
   }
@@ -273,6 +283,31 @@ export class TrackService {
       return true;
     }
 
+    Promise.all([
+      this.trackRepository.createSourceTrackWithVariants(
+        {
+          artist: firstTrack.artist,
+          title: firstTrack.title,
+          album: firstTrack.album,
+          releaseDate: firstTrack.releaseDate,
+          durationMs: firstTrack.durationMs,
+        },
+        [firstTrack.spotifyId],
+        5,
+      ),
+      this.trackRepository.createSourceTrackWithVariants(
+        {
+          artist: secondTrack.artist,
+          title: secondTrack.title,
+          album: secondTrack.album,
+          releaseDate: secondTrack.releaseDate,
+          durationMs: secondTrack.durationMs,
+        },
+        [secondTrack.spotifyId],
+        5,
+      ),
+    ]);
+
     return false;
   }
 
@@ -294,10 +329,9 @@ export class TrackService {
     const nonSourceTrack = firstSourceTrack ? secondTrack : firstTrack;
 
     if (trueSourceTrack) {
-      await this.trackRepository.upsertTrackVariant(
+      await this.trackRepository.createVariantForSourceTrack(
         trueSourceTrack.id,
         nonSourceTrack.spotifyId,
-        true,
         score,
       );
     } else {

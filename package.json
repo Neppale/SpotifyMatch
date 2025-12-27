@@ -21,7 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:reset": "prisma migrate reset --force && prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev && prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.10",
