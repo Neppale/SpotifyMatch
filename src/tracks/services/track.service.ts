@@ -3,8 +3,8 @@ import axios from 'axios';
 import { AuthService } from '@Utils/auth/services/auth.service';
 import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
-import { Track } from 'generated/prisma';
 import { Item } from '@Playlist/models/detailed-playlist.model';
+import { Track } from '@PrismaClient';
 
 @Injectable()
 export class TrackService {
@@ -27,7 +27,7 @@ export class TrackService {
     const trackData: DetailedTrack = response.data;
     const minimizedTrack: Track = {
       id: trackData.id,
-      spotifyId: trackData.id,
+      artistId: trackData.artists[0].id,
       artist: trackData.artists[0].name,
       title: trackData.name,
       album: trackData.album.name,
@@ -38,183 +38,6 @@ export class TrackService {
     };
 
     return minimizedTrack;
-  }
-
-  async getSimilarTracks(
-    firstProfileTrackIds: string[],
-    secondProfileTrackIds: string[],
-  ): Promise<Track[]> {
-    const [existingFirstProfileTracks, existingSecondProfileTracks] =
-      await Promise.all([
-        this.trackRepository.getTracksBySpotifyId(firstProfileTrackIds),
-        this.trackRepository.getTracksBySpotifyId(secondProfileTrackIds),
-      ]);
-
-    const firstProfileTrackIdsSet = new Set(firstProfileTrackIds);
-    const secondProfileTrackIdsSet = new Set(secondProfileTrackIds);
-
-    const existingFirstTracksMap = new Map<string, Track>();
-    const existingSecondTracksMap = new Map<string, Track>();
-
-    for (const variant of existingFirstProfileTracks) {
-      if (firstProfileTrackIdsSet.has(variant.spotifyId)) {
-        const track = variant.Track;
-        existingFirstTracksMap.set(variant.spotifyId, {
-          id: track.id,
-          spotifyId: variant.spotifyId,
-          artist: track.artist,
-          title: track.title,
-          album: track.album,
-          releaseDate: track.releaseDate,
-          durationMs: track.durationMs,
-          createdAt: track.createdAt,
-          updatedAt: track.updatedAt,
-        });
-      }
-    }
-
-    for (const variant of existingSecondProfileTracks) {
-      if (secondProfileTrackIdsSet.has(variant.spotifyId)) {
-        const track = variant.Track;
-        existingSecondTracksMap.set(variant.spotifyId, {
-          id: track.id,
-          spotifyId: variant.spotifyId,
-          artist: track.artist,
-          title: track.title,
-          album: track.album,
-          releaseDate: track.releaseDate,
-          durationMs: track.durationMs,
-          createdAt: track.createdAt,
-          updatedAt: track.updatedAt,
-        });
-      }
-    }
-
-    const remainingFirstProfileTrackIds = firstProfileTrackIds.filter(
-      (trackId) => !existingFirstTracksMap.has(trackId),
-    );
-    const remainingSecondProfileTrackIds = secondProfileTrackIds.filter(
-      (trackId) => !existingSecondTracksMap.has(trackId),
-    );
-
-    const [firstProfileTracksData, secondProfileTracksData] = await Promise.all(
-      [
-        remainingFirstProfileTrackIds.length > 0
-          ? this.getBatchedDetailedTracks(remainingFirstProfileTrackIds)
-          : Promise.resolve([]),
-        remainingSecondProfileTrackIds.length > 0
-          ? this.getBatchedDetailedTracks(remainingSecondProfileTrackIds)
-          : Promise.resolve([]),
-      ],
-    );
-
-    const firstProfileArtistTracks = new Map<string, Track[]>();
-
-    for (const track of existingFirstTracksMap.values()) {
-      const existing = firstProfileArtistTracks.get(track.artist);
-      if (existing) {
-        existing.push(track);
-      } else {
-        firstProfileArtistTracks.set(track.artist, [track]);
-      }
-    }
-
-    for (const trackData of firstProfileTracksData) {
-      const track: Track = {
-        id: trackData.id,
-        spotifyId: trackData.id,
-        artist: trackData.artists[0]?.name,
-        title: trackData.name,
-        album: trackData.album.name,
-        releaseDate: trackData.album.release_date,
-        durationMs: trackData.duration_ms,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      const existing = firstProfileArtistTracks.get(track.artist);
-      if (existing) {
-        existing.push(track);
-      } else {
-        firstProfileArtistTracks.set(track.artist, [track]);
-      }
-    }
-
-    const secondProfileArtistTracks = new Map<string, Track[]>();
-
-    for (const track of existingSecondTracksMap.values()) {
-      const existing = secondProfileArtistTracks.get(track.artist);
-      if (existing) {
-        existing.push(track);
-      } else {
-        secondProfileArtistTracks.set(track.artist, [track]);
-      }
-    }
-
-    for (const trackData of secondProfileTracksData) {
-      const track: Track = {
-        id: trackData.id,
-        spotifyId: trackData.id,
-        artist: trackData.artists[0]?.name,
-        title: trackData.name,
-        album: trackData.album.name,
-        releaseDate: trackData.album.release_date,
-        durationMs: trackData.duration_ms,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      const existing = secondProfileArtistTracks.get(track.artist);
-      if (existing) {
-        existing.push(track);
-      } else {
-        secondProfileArtistTracks.set(track.artist, [track]);
-      }
-    }
-
-    const similarTracks: Track[] = [];
-    const similarTrackHrefs = new Set<string>();
-    const profileWithLeastTracks =
-      firstProfileArtistTracks.size < secondProfileArtistTracks.size
-        ? firstProfileArtistTracks
-        : secondProfileArtistTracks;
-
-    const profileWithMostTracks =
-      firstProfileArtistTracks.size > secondProfileArtistTracks.size
-        ? firstProfileArtistTracks
-        : secondProfileArtistTracks;
-
-    const compareTrackTasks: Promise<void>[] = [];
-
-    for (const [
-      artistName,
-      tracksFromSmallerProfile,
-    ] of profileWithLeastTracks) {
-      const tracksFromLargerProfile = profileWithMostTracks.get(artistName);
-      if (tracksFromLargerProfile) {
-        for (const firstTrack of tracksFromSmallerProfile) {
-          const trackKey = firstTrack.spotifyId;
-          if (similarTrackHrefs.has(trackKey)) {
-            continue;
-          }
-          compareTrackTasks.push(
-            (async () => {
-              for (const secondTrack of tracksFromLargerProfile) {
-                if (await this.compareTracks(firstTrack, secondTrack)) {
-                  if (!similarTrackHrefs.has(trackKey)) {
-                    similarTrackHrefs.add(trackKey);
-                    similarTracks.push(firstTrack);
-                  }
-                  break;
-                }
-              }
-            })(),
-          );
-        }
-      }
-    }
-
-    await Promise.all(compareTrackTasks);
-
-    return similarTracks;
   }
 
   async getSimilarTracksWithoutDB(
@@ -233,7 +56,7 @@ export class TrackService {
     for (const trackData of firstProfileTracksData) {
       const track: Track = {
         id: trackData.id,
-        spotifyId: trackData.id,
+        artistId: trackData.artists[0]?.id,
         artist: trackData.artists[0]?.name,
         title: trackData.name,
         album: trackData.album.name,
@@ -255,7 +78,7 @@ export class TrackService {
     for (const trackData of secondProfileTracksData) {
       const track: Track = {
         id: trackData.id,
-        spotifyId: trackData.id,
+        artistId: trackData.artists[0]?.id,
         artist: trackData.artists[0]?.name,
         title: trackData.name,
         album: trackData.album.name,
@@ -291,7 +114,7 @@ export class TrackService {
       const tracksFromLargerProfile = profileWithMostTracks.get(artistName);
       if (tracksFromLargerProfile) {
         for (const firstTrack of tracksFromSmallerProfile) {
-          const trackKey = firstTrack.spotifyId;
+          const trackKey = firstTrack.id;
           if (similarTrackHrefs.has(trackKey)) {
             continue;
           }
@@ -338,76 +161,6 @@ export class TrackService {
     return tracks;
   }
 
-  async createTrackVariants(spotifyIds: string[]): Promise<void> {
-    const tracks = await this.getBatchedDetailedTracks(spotifyIds);
-    for (const track of tracks) {
-      const newTrack: Track = {
-        id: track.id,
-        spotifyId: track.id,
-        artist: track.artists[0]?.name,
-        title: track.name,
-        album: track.album.name,
-        releaseDate: track.album.release_date,
-        durationMs: track.duration_ms,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      await this.trackRepository.createSourceTrackWithVariants(
-        newTrack,
-        [track.id],
-        5,
-        track.popularity,
-      );
-    }
-  }
-
-  private async compareTracks(
-    firstTrack: Track,
-    secondTrack: Track,
-  ): Promise<boolean> {
-    const SCORE_THRESHOLD = 3;
-    let score = 0;
-    if (firstTrack.artist === secondTrack.artist) score++;
-    if (firstTrack.title === secondTrack.title) score++;
-    if (firstTrack.album === secondTrack.album) score++;
-    if (firstTrack.releaseDate === secondTrack.releaseDate) score++;
-    if (firstTrack.durationMs === secondTrack.durationMs) score++;
-
-    if (score >= SCORE_THRESHOLD) {
-      await this.handleTrackVariants(firstTrack, secondTrack, score);
-      return true;
-    }
-
-    Promise.all([
-      this.trackRepository.createSourceTrackWithVariants(
-        {
-          artist: firstTrack.artist,
-          title: firstTrack.title,
-          album: firstTrack.album,
-          releaseDate: firstTrack.releaseDate,
-          durationMs: firstTrack.durationMs,
-        },
-        [firstTrack.spotifyId],
-        5,
-        0,
-      ),
-      this.trackRepository.createSourceTrackWithVariants(
-        {
-          artist: secondTrack.artist,
-          title: secondTrack.title,
-          album: secondTrack.album,
-          releaseDate: secondTrack.releaseDate,
-          durationMs: secondTrack.durationMs,
-        },
-        [secondTrack.spotifyId],
-        5,
-        0,
-      ),
-    ]);
-
-    return false;
-  }
-
   private compareTracksWithoutDB(
     firstTrack: Track,
     secondTrack: Track,
@@ -421,54 +174,6 @@ export class TrackService {
     if (firstTrack.durationMs === secondTrack.durationMs) score++;
 
     return score >= SCORE_THRESHOLD;
-  }
-
-  private async handleTrackVariants(
-    firstTrack: Track,
-    secondTrack: Track,
-    score: number,
-  ): Promise<void> {
-    const firstSourceTrack =
-      await this.trackRepository.findSourceTrackBySpotifyId(
-        firstTrack.spotifyId,
-      );
-    const secondSourceTrack =
-      await this.trackRepository.findSourceTrackBySpotifyId(
-        secondTrack.spotifyId,
-      );
-
-    const trueSourceTrack = firstSourceTrack || secondSourceTrack;
-    const nonSourceTrack = firstSourceTrack ? secondTrack : firstTrack;
-
-    if (trueSourceTrack) {
-      await this.trackRepository.createVariantForSourceTrack(
-        trueSourceTrack.id,
-        nonSourceTrack.spotifyId,
-        score,
-        0,
-      );
-    } else {
-      const createdSourceTrack =
-        await this.trackRepository.createSourceTrackWithVariants(
-          {
-            artist: firstTrack.artist,
-            title: firstTrack.title,
-            album: firstTrack.album,
-            releaseDate: firstTrack.releaseDate,
-            durationMs: firstTrack.durationMs,
-          },
-          [firstTrack.spotifyId, secondTrack.spotifyId],
-          score,
-          0,
-        );
-
-      await this.trackRepository.createVariantForSourceTrack(
-        createdSourceTrack.id,
-        secondTrack.spotifyId,
-        score,
-        0,
-      );
-    }
   }
 
   private async getBatchedDetailedTracks(

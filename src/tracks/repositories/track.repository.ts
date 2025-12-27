@@ -19,21 +19,6 @@ export class TrackRepository {
     });
   }
 
-  async findSourceTrackBySpotifyId(spotifyId: string): Promise<Track | null> {
-    const variant = await this.prismaService
-      .getClient()
-      .trackVariant.findFirst({
-        where: {
-          spotifyId,
-          isSourceTrack: true,
-        },
-        include: {
-          Track: true,
-        },
-      });
-    return variant?.Track || null;
-  }
-
   async upsertTrackVariant(
     trackId: string,
     spotifyId: string,
@@ -65,9 +50,7 @@ export class TrackRepository {
 
   async createSourceTrackWithVariants(
     trackData: Prisma.TrackCreateWithoutTrackVariantInput,
-    spotifyIds: string[],
-    score: number,
-    popularity: number,
+    variantData: Prisma.TrackVariantCreateWithoutTrackInput[],
   ): Promise<Track> {
     const track = await this.prismaService
       .getClient()
@@ -76,20 +59,20 @@ export class TrackRepository {
           data: {
             album: trackData.album,
             artist: trackData.artist,
+            artistId: trackData.artistId,
             title: trackData.title,
             releaseDate: trackData.releaseDate,
             durationMs: trackData.durationMs,
           },
         });
-        for (const [index, spotifyId] of spotifyIds.entries()) {
-          const isSourceTrack = index === 0;
+        for (const variant of variantData) {
           await tx.trackVariant.create({
             data: {
               trackId: track.id,
-              spotifyId,
-              isSourceTrack,
-              score: isSourceTrack ? 5 : score,
-              popularity,
+              spotifyId: variant.spotifyId,
+              isSourceTrack: variant.isSourceTrack,
+              score: variant.score,
+              popularity: variant.popularity,
             },
           });
         }
@@ -101,28 +84,35 @@ export class TrackRepository {
 
   async createVariantForSourceTrack(
     sourceTrackId: string,
-    spotifyId: string,
-    score: number,
-    popularity: number,
+    variantData: Prisma.TrackVariantCreateWithoutTrackInput,
   ): Promise<TrackVariant> {
-    return await this.prismaService.getClient().trackVariant.upsert({
-      where: {
-        trackId_isSourceTrack: {
+    const existingVariant = await this.prismaService
+      .getClient()
+      .trackVariant.findFirst({
+        where: {
           trackId: sourceTrackId,
-          isSourceTrack: false,
+          spotifyId: variantData.spotifyId,
         },
-      },
-      update: {
-        spotifyId,
-        updatedAt: new Date(),
-        popularity,
-      },
-      create: {
+      });
+
+    if (existingVariant) {
+      return await this.prismaService.getClient().trackVariant.update({
+        where: { id: existingVariant.id },
+        data: {
+          popularity: variantData.popularity,
+          score: variantData.score,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    return await this.prismaService.getClient().trackVariant.create({
+      data: {
         trackId: sourceTrackId,
-        spotifyId,
+        spotifyId: variantData.spotifyId,
         isSourceTrack: false,
-        score,
-        popularity,
+        score: variantData.score,
+        popularity: variantData.popularity,
       },
     });
   }
@@ -144,5 +134,16 @@ export class TrackRepository {
           Track: track,
         })),
       );
+  }
+
+  async findTrackWithVariantsById(
+    trackId: string,
+  ): Promise<Prisma.TrackGetPayload<{
+    include: { TrackVariant: true };
+  }> | null> {
+    return await this.prismaService.getClient().track.findUnique({
+      where: { id: trackId },
+      include: { TrackVariant: true },
+    });
   }
 }

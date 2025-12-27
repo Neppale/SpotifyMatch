@@ -1,4 +1,4 @@
-import { Track } from 'generated/prisma';
+import { Track } from '@PrismaClient';
 
 export class ProfileComparison {
   totalExactTracks: number;

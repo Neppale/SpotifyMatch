@@ -4,6 +4,7 @@ import { ProfileController } from '@Profile/profile.controller';
 import { ProfileService } from '@Profile/services/profile.service';
 import { TrackModule } from '@Tracks/track.module';
 import { ProfileRepository } from '@Profile/services/profile.repository';
+import { TrackProcessingEventEmitter } from '../track-processing/services/track-processing-event-emitter.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { ProfileRepository } from '@Profile/services/profile.repository';
     }),
   ],
   controllers: [ProfileController],
-  providers: [ProfileService, ProfileRepository],
-  exports: [ProfileService, ProfileRepository],
+  providers: [ProfileService, ProfileRepository, TrackProcessingEventEmitter],
+  exports: [ProfileService, ProfileRepository, TrackProcessingEventEmitter],
 })
 export class ProfileModule {}
