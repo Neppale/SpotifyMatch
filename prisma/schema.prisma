@@ -29,6 +29,7 @@ model TrackVariant {
   Track          Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
   spotifyId      String           @map("spotify_id")
   score          Int
+  popularity     Int            
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   isSourceTrack  Boolean          @default(false) @map("is_source_track")

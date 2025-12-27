@@ -262,6 +262,7 @@ export class TrackService {
         newTrack,
         [track.id],
         5,
+        track.popularity,
       );
     }
   }
@@ -294,6 +295,7 @@ export class TrackService {
         },
         [firstTrack.spotifyId],
         5,
+        0,
       ),
       this.trackRepository.createSourceTrackWithVariants(
         {
@@ -305,6 +307,7 @@ export class TrackService {
         },
         [secondTrack.spotifyId],
         5,
+        0,
       ),
     ]);
 
@@ -333,6 +336,7 @@ export class TrackService {
         trueSourceTrack.id,
         nonSourceTrack.spotifyId,
         score,
+        0,
       );
     } else {
       const createdSourceTrack =
@@ -346,12 +350,14 @@ export class TrackService {
           },
           [firstTrack.spotifyId, secondTrack.spotifyId],
           score,
+          0,
         );
 
       await this.trackRepository.createVariantForSourceTrack(
         createdSourceTrack.id,
         secondTrack.spotifyId,
         score,
+        0,
       );
     }
   }

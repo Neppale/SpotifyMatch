@@ -11,6 +11,16 @@
       "console": "internalConsole",
       "outputCapture": "std",
       "restart": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Track Processing Service",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:track-processing:dev"],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "outputCapture": "std"
     }
   ]
 }

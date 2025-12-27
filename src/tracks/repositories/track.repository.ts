@@ -38,6 +38,7 @@ export class TrackRepository {
     trackId: string,
     spotifyId: string,
     isSourceTrack: boolean,
+    popularity: number,
     score: number,
   ): Promise<TrackVariant> {
     return await this.prismaService.getClient().trackVariant.upsert({
@@ -50,12 +51,14 @@ export class TrackRepository {
       update: {
         spotifyId,
         updatedAt: new Date(),
+        popularity,
       },
       create: {
         trackId,
         spotifyId,
         isSourceTrack,
         score,
+        popularity,
       },
     });
   }
@@ -64,6 +67,7 @@ export class TrackRepository {
     trackData: Prisma.TrackCreateWithoutTrackVariantInput,
     spotifyIds: string[],
     score: number,
+    popularity: number,
   ): Promise<Track> {
     const track = await this.prismaService
       .getClient()
@@ -85,6 +89,7 @@ export class TrackRepository {
               spotifyId,
               isSourceTrack,
               score: isSourceTrack ? 5 : score,
+              popularity,
             },
           });
         }
@@ -98,6 +103,7 @@ export class TrackRepository {
     sourceTrackId: string,
     spotifyId: string,
     score: number,
+    popularity: number,
   ): Promise<TrackVariant> {
     return await this.prismaService.getClient().trackVariant.upsert({
       where: {
@@ -109,13 +115,34 @@ export class TrackRepository {
       update: {
         spotifyId,
         updatedAt: new Date(),
+        popularity,
       },
       create: {
         trackId: sourceTrackId,
         spotifyId,
         isSourceTrack: false,
         score,
+        popularity,
       },
     });
+  }
+
+  async findTracksByNormalizedArtist(
+    normalizedArtist: string,
+  ): Promise<Prisma.TrackVariantGetPayload<{ include: { Track: true } }>[]> {
+    const allTracks = await this.prismaService.getClient().track.findMany({
+      include: {
+        TrackVariant: true,
+      },
+    });
+
+    return allTracks
+      .filter((track) => track.artist.toUpperCase() === normalizedArtist)
+      .flatMap((track) =>
+        track.TrackVariant.map((variant) => ({
+          ...variant,
+          Track: track,
+        })),
+      );
   }
 }
