@@ -7,8 +7,7 @@ import { Track } from 'generated/prisma';
 import { ProfilePlaylistData } from '@Profile/models/profile-playlist-data.model';
 import { CompareProfileDto } from '@Profile/models/compare-profile.dto';
 import { Response } from 'express';
-import crypto from 'crypto';
-import { ProfileRepository } from '@Profile/services/profile.repository';
+
 @Injectable()
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
@@ -17,7 +16,6 @@ export class ProfileService {
   constructor(
     private readonly authService: AuthService,
     private readonly trackService: TrackService,
-    private readonly profileRepository: ProfileRepository,
   ) {}
 
   async findPlaylists(
@@ -96,8 +94,6 @@ export class ProfileService {
       }
     }
 
-    await this.trackService.createTrackVariants(Array.from(sameTracks));
-
     const remainingFirstProfileTracks = [...firstProfileTrackIdsSet].filter(
       (currentTrack) => !sameTracks.has(currentTrack),
     );
@@ -106,7 +102,7 @@ export class ProfileService {
     );
 
     const similarTracks = advanced
-      ? await this.trackService.getSimilarTracks(
+      ? await this.trackService.getSimilarTracksWithoutDB(
           remainingFirstProfileTracks,
           remainingSecondProfileTracks,
         )
@@ -152,40 +148,6 @@ export class ProfileService {
     );
 
     context.status(200).send(formattedResponse);
-
-    if (saveResults) {
-      const [firstProfileSnapshotId, secondProfileSnapshotId] =
-        await Promise.all([
-          this.buildSnapshotId(
-            firstProfilePlaylistIds
-              .map((playlist) => playlist.snapshotId)
-              .sort()
-              .join('-'),
-          ),
-          this.buildSnapshotId(
-            secondProfilePlaylistIds
-              .map((playlist) => playlist.snapshotId)
-              .sort()
-              .join('-'),
-          ),
-        ]);
-      await Promise.all([
-        this.profileRepository.upsertProfile(
-          firstProfile,
-          firstProfileTrackIds,
-          firstProfileSnapshotId,
-        ),
-        this.profileRepository.upsertProfile(
-          secondProfile,
-          secondProfileTrackIds,
-          secondProfileSnapshotId,
-        ),
-      ]);
-    }
-  }
-
-  private async buildSnapshotId(snapshotIds: string): Promise<string> {
-    return crypto.createHash('md5').update(snapshotIds).digest('hex');
   }
 
   private buildMessage(

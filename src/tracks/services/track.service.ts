@@ -217,6 +217,100 @@ export class TrackService {
     return similarTracks;
   }
 
+  async getSimilarTracksWithoutDB(
+    firstProfileTrackIds: string[],
+    secondProfileTrackIds: string[],
+  ): Promise<Track[]> {
+    const [firstProfileTracksData, secondProfileTracksData] = await Promise.all(
+      [
+        this.getBatchedDetailedTracks(firstProfileTrackIds),
+        this.getBatchedDetailedTracks(secondProfileTrackIds),
+      ],
+    );
+
+    const firstProfileArtistTracks = new Map<string, Track[]>();
+
+    for (const trackData of firstProfileTracksData) {
+      const track: Track = {
+        id: trackData.id,
+        spotifyId: trackData.id,
+        artist: trackData.artists[0]?.name,
+        title: trackData.name,
+        album: trackData.album.name,
+        releaseDate: trackData.album.release_date,
+        durationMs: trackData.duration_ms,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const existing = firstProfileArtistTracks.get(track.artist);
+      if (existing) {
+        existing.push(track);
+      } else {
+        firstProfileArtistTracks.set(track.artist, [track]);
+      }
+    }
+
+    const secondProfileArtistTracks = new Map<string, Track[]>();
+
+    for (const trackData of secondProfileTracksData) {
+      const track: Track = {
+        id: trackData.id,
+        spotifyId: trackData.id,
+        artist: trackData.artists[0]?.name,
+        title: trackData.name,
+        album: trackData.album.name,
+        releaseDate: trackData.album.release_date,
+        durationMs: trackData.duration_ms,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const existing = secondProfileArtistTracks.get(track.artist);
+      if (existing) {
+        existing.push(track);
+      } else {
+        secondProfileArtistTracks.set(track.artist, [track]);
+      }
+    }
+
+    const similarTracks: Track[] = [];
+    const similarTrackHrefs = new Set<string>();
+    const profileWithLeastTracks =
+      firstProfileArtistTracks.size < secondProfileArtistTracks.size
+        ? firstProfileArtistTracks
+        : secondProfileArtistTracks;
+
+    const profileWithMostTracks =
+      firstProfileArtistTracks.size > secondProfileArtistTracks.size
+        ? firstProfileArtistTracks
+        : secondProfileArtistTracks;
+
+    for (const [
+      artistName,
+      tracksFromSmallerProfile,
+    ] of profileWithLeastTracks) {
+      const tracksFromLargerProfile = profileWithMostTracks.get(artistName);
+      if (tracksFromLargerProfile) {
+        for (const firstTrack of tracksFromSmallerProfile) {
+          const trackKey = firstTrack.spotifyId;
+          if (similarTrackHrefs.has(trackKey)) {
+            continue;
+          }
+          for (const secondTrack of tracksFromLargerProfile) {
+            if (this.compareTracksWithoutDB(firstTrack, secondTrack)) {
+              if (!similarTrackHrefs.has(trackKey)) {
+                similarTrackHrefs.add(trackKey);
+                similarTracks.push(firstTrack);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return similarTracks;
+  }
+
   async getTrackIdsByPlaylistIds(playlistIds: string[]): Promise<string[]> {
     const playlistUrl = 'https://api.spotify.com/v1/playlists/';
     const promises = playlistIds.map((playlistId) => {
@@ -312,6 +406,21 @@ export class TrackService {
     ]);
 
     return false;
+  }
+
+  private compareTracksWithoutDB(
+    firstTrack: Track,
+    secondTrack: Track,
+  ): boolean {
+    const SCORE_THRESHOLD = 3;
+    let score = 0;
+    if (firstTrack.artist === secondTrack.artist) score++;
+    if (firstTrack.title === secondTrack.title) score++;
+    if (firstTrack.album === secondTrack.album) score++;
+    if (firstTrack.releaseDate === secondTrack.releaseDate) score++;
+    if (firstTrack.durationMs === secondTrack.durationMs) score++;
+
+    return score >= SCORE_THRESHOLD;
   }
 
   private async handleTrackVariants(
