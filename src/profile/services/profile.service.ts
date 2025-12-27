@@ -159,17 +159,12 @@ export class ProfileService {
       });
     }
 
-    const remainingFirstProfileTracks = firstProfileTracks.filter(
-      (t) => !secondProfileTracksSet.has(t.id),
-    );
-    const remainingSecondProfileTracks = secondProfileTracks.filter(
-      (t) => !firstProfileTracksSet.has(t.id),
-    );
-
     const similarTracks = advanced
-      ? await this.compareTracksFromDB(
-          remainingFirstProfileTracks,
-          remainingSecondProfileTracks,
+      ? await this.findSimilarTracksFromDB(
+          firstProfileTracks,
+          secondProfileTracks,
+          firstProfileTracksSet,
+          secondProfileTracksSet,
         )
       : undefined;
 
@@ -210,47 +205,53 @@ export class ProfileService {
     return crypto.createHash('md5').update(snapshotIds).digest('hex');
   }
 
-  private async compareTracksFromDB(
+  private async findSimilarTracksFromDB(
     firstProfileTracks: Track[],
     secondProfileTracks: Track[],
+    firstProfileTracksSet: Set<string>,
+    secondProfileTracksSet: Set<string>,
   ): Promise<Track[]> {
-    const firstProfileArtistTracks = new Map<string, Track[]>();
-    for (const track of firstProfileTracks) {
-      const existing = firstProfileArtistTracks.get(track.artist);
+    const remainingFirstProfileTracks = firstProfileTracks.filter(
+      (t) => !secondProfileTracksSet.has(t.id),
+    );
+    const remainingSecondProfileTracks = secondProfileTracks.filter(
+      (t) => !firstProfileTracksSet.has(t.id),
+    );
+
+    const firstProfileArtistIdTracks = new Map<string, Track[]>();
+    for (const track of remainingFirstProfileTracks) {
+      const existing = firstProfileArtistIdTracks.get(track.artistId);
       if (existing) {
         existing.push(track);
       } else {
-        firstProfileArtistTracks.set(track.artist, [track]);
+        firstProfileArtistIdTracks.set(track.artistId, [track]);
       }
     }
 
-    const secondProfileArtistTracks = new Map<string, Track[]>();
-    for (const track of secondProfileTracks) {
-      const existing = secondProfileArtistTracks.get(track.artist);
+    const secondProfileArtistIdTracks = new Map<string, Track[]>();
+    for (const track of remainingSecondProfileTracks) {
+      const existing = secondProfileArtistIdTracks.get(track.artistId);
       if (existing) {
         existing.push(track);
       } else {
-        secondProfileArtistTracks.set(track.artist, [track]);
+        secondProfileArtistIdTracks.set(track.artistId, [track]);
       }
     }
 
     const similarTracks: Track[] = [];
     const similarTrackIds = new Set<string>();
     const profileWithLeastTracks =
-      firstProfileArtistTracks.size < secondProfileArtistTracks.size
-        ? firstProfileArtistTracks
-        : secondProfileArtistTracks;
+      firstProfileArtistIdTracks.size < secondProfileArtistIdTracks.size
+        ? firstProfileArtistIdTracks
+        : secondProfileArtistIdTracks;
 
     const profileWithMostTracks =
-      firstProfileArtistTracks.size > secondProfileArtistTracks.size
-        ? firstProfileArtistTracks
-        : secondProfileArtistTracks;
+      firstProfileArtistIdTracks.size > secondProfileArtistIdTracks.size
+        ? firstProfileArtistIdTracks
+        : secondProfileArtistIdTracks;
 
-    for (const [
-      artistName,
-      tracksFromSmallerProfile,
-    ] of profileWithLeastTracks) {
-      const tracksFromLargerProfile = profileWithMostTracks.get(artistName);
+    for (const [artistId, tracksFromSmallerProfile] of profileWithLeastTracks) {
+      const tracksFromLargerProfile = profileWithMostTracks.get(artistId);
       if (tracksFromLargerProfile) {
         for (const firstTrack of tracksFromSmallerProfile) {
           const trackKey = firstTrack.id;
@@ -258,7 +259,7 @@ export class ProfileService {
             continue;
           }
           for (const secondTrack of tracksFromLargerProfile) {
-            if (this.compareTracksWithoutDB(firstTrack, secondTrack)) {
+            if (this.areTracksSimilar(firstTrack, secondTrack)) {
               if (!similarTrackIds.has(trackKey)) {
                 similarTrackIds.add(trackKey);
                 similarTracks.push(firstTrack);
@@ -273,22 +274,7 @@ export class ProfileService {
     return similarTracks;
   }
 
-  private compareTracksWithoutDB(
-    firstTrack: {
-      artist: string;
-      title: string;
-      album: string;
-      releaseDate: string;
-      durationMs: number;
-    },
-    secondTrack: {
-      artist: string;
-      title: string;
-      album: string;
-      releaseDate: string;
-      durationMs: number;
-    },
-  ): boolean {
+  private areTracksSimilar(firstTrack: Track, secondTrack: Track): boolean {
     const SCORE_THRESHOLD = 3;
     let score = 0;
     if (firstTrack.artist === secondTrack.artist) score++;

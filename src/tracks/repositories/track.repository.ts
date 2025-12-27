@@ -117,23 +117,24 @@ export class TrackRepository {
     });
   }
 
-  async findTracksByNormalizedArtist(
-    normalizedArtist: string,
+  async findTracksByArtistId(
+    artistId: string,
   ): Promise<Prisma.TrackVariantGetPayload<{ include: { Track: true } }>[]> {
     const allTracks = await this.prismaService.getClient().track.findMany({
+      where: {
+        artistId: artistId,
+      },
       include: {
         TrackVariant: true,
       },
     });
 
-    return allTracks
-      .filter((track) => track.artist.toUpperCase() === normalizedArtist)
-      .flatMap((track) =>
-        track.TrackVariant.map((variant) => ({
-          ...variant,
-          Track: track,
-        })),
-      );
+    return allTracks.flatMap((track) =>
+      track.TrackVariant.map((variant) => ({
+        ...variant,
+        Track: track,
+      })),
+    );
   }
 
   async findTrackWithVariantsById(

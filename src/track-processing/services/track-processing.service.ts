@@ -46,9 +46,10 @@ export class TrackProcessingService {
 
     const normalizedTracks = this.normalizeTrackData(trackDataMap);
 
-    const tracksByArtist = this.groupTracksByArtist(normalizedTracks);
+    const tracksByArtistId = this.groupTracksByArtistId(normalizedTracks);
 
-    const processedTracks = await this.processTracksByArtist(tracksByArtist);
+    const processedTracks =
+      await this.processTracksByArtistId(tracksByArtistId);
 
     await this.saveTracksAndVariants(processedTracks);
     await this.saveProfilesAndLibraries(data.profiles);
@@ -137,17 +138,17 @@ export class TrackProcessingService {
     return normalized;
   }
 
-  private groupTracksByArtist(
+  private groupTracksByArtistId(
     tracks: NormalizedTrackData[],
   ): Map<string, NormalizedTrackData[]> {
     const grouped = new Map<string, NormalizedTrackData[]>();
 
     for (const track of tracks) {
-      const artist = track.artist;
-      if (!grouped.has(artist)) {
-        grouped.set(artist, []);
+      const artistId = track.artistId;
+      if (!grouped.has(artistId)) {
+        grouped.set(artistId, []);
       }
-      grouped.get(artist)!.push({
+      grouped.get(artistId)!.push({
         artist: track.artist,
         artistId: track.artistId,
         title: track.title,
@@ -162,8 +163,8 @@ export class TrackProcessingService {
     return grouped;
   }
 
-  private async processTracksByArtist(
-    tracksByArtist: Map<string, NormalizedTrackData[]>,
+  private async processTracksByArtistId(
+    tracksByArtistId: Map<string, NormalizedTrackData[]>,
   ): Promise<
     Map<string, Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>>
   > {
@@ -172,9 +173,9 @@ export class TrackProcessingService {
       Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>
     >();
 
-    for (const [artist, tracks] of tracksByArtist.entries()) {
+    for (const [artistId, tracks] of tracksByArtistId.entries()) {
       const existingTracks =
-        await this.trackRepository.findTracksByNormalizedArtist(artist);
+        await this.trackRepository.findTracksByArtistId(artistId);
 
       const newTrackSpotifyIds = new Set<string>();
       for (const track of tracks) {
@@ -227,7 +228,7 @@ export class TrackProcessingService {
       );
 
       const sourceTrackData = allTracksForArtist[0];
-      const variantTracksData = allTracksForArtist.slice(1);
+      const remainingTracks = allTracksForArtist.slice(1);
 
       sourceTrackData.track.variants[0].isSourceTrack = true;
       sourceTrackData.track.variants[0].score = 5;
@@ -236,11 +237,18 @@ export class TrackProcessingService {
         ...sourceTrackData.track.variants,
       ];
 
-      for (const variantTrackData of variantTracksData) {
-        for (const variant of variantTrackData.track.variants) {
-          variant.isSourceTrack = false;
-          variant.score = 3;
-          allVariants.push(variant);
+      for (const variantTrackData of remainingTracks) {
+        const SCORE_THRESHOLD = 3;
+        const score = this.getTrackVariantScore(
+          sourceTrackData.track,
+          variantTrackData.track,
+        );
+        if (score >= SCORE_THRESHOLD) {
+          for (const variant of variantTrackData.track.variants) {
+            variant.isSourceTrack = false;
+            variant.score = score;
+            allVariants.push(variant);
+          }
         }
       }
 
@@ -287,10 +295,24 @@ export class TrackProcessingService {
         }
       }
 
-      processed.set(artist, track);
+      processed.set(artistId, track);
     }
 
     return processed;
+  }
+
+  private getTrackVariantScore(
+    firstTrack: NormalizedTrackData,
+    secondTrack: NormalizedTrackData,
+  ): number {
+    let score = 0;
+    if (firstTrack.artist === secondTrack.artist) score++;
+    if (firstTrack.title === secondTrack.title) score++;
+    if (firstTrack.album === secondTrack.album) score++;
+    if (firstTrack.releaseDate === secondTrack.releaseDate) score++;
+    if (firstTrack.durationMs === secondTrack.durationMs) score++;
+
+    return score;
   }
 
   private async createTrackWithVariants(
