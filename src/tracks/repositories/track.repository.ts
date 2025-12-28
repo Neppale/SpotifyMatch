@@ -28,13 +28,15 @@ export class TrackRepository {
   ): Promise<TrackVariant> {
     return await this.prismaService.getClient().trackVariant.upsert({
       where: {
-        trackId_isSourceTrack: {
+        trackId_spotifyId_isSourceTrack: {
           trackId,
+          spotifyId,
           isSourceTrack,
         },
       },
       update: {
         spotifyId,
+        score,
         updatedAt: new Date(),
         popularity,
       },

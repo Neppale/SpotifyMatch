@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CompareProfileDto {
   @IsString()
@@ -8,12 +8,4 @@ export class CompareProfileDto {
   @IsString()
   @IsNotEmpty()
   secondProfile: string;
-
-  @IsBoolean()
-  @IsOptional()
-  advanced: boolean = false;
-
-  @IsBoolean()
-  @IsOptional()
-  saveResults: boolean = false;
 }

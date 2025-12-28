@@ -1,4 +1,5 @@
 import { Track } from '@PrismaClient';
+import { TrackWithVariantId } from '@Tracks/models/track-with-variant-id.model';
 
 export class ProfileComparison {
   totalExactTracks: number;
@@ -12,6 +13,6 @@ export class ProfileComparison {
 export class ProfileComparisonFormattedResponse {
   message: string;
   callToAction: string;
-  similarTracks: Track[];
-  exactTracks: Track[];
+  tracks: TrackWithVariantId[];
+  similarTracks: TrackWithVariantId[];
 }

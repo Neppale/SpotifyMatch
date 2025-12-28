@@ -29,18 +29,25 @@ export class ProfileRepository {
       update: {
         snapshotId,
         updatedAt: new Date(),
-        ProfileLibrary: {
-          deleteMany: {},
-          connect: variantIds.map((id) => ({
-            id,
-          })),
-        },
       },
       create: {
         id: profileId,
         snapshotId,
-        ProfileLibrary: {
-          connect: variantIds.map((id) => ({
+      },
+    });
+
+    await this.updateProfileLibrary(profileId, variantIds);
+  }
+
+  private async updateProfileLibrary(
+    profileId: string,
+    variantIds: string[],
+  ): Promise<void> {
+    await this.prismaService.getClient().profile.update({
+      where: { id: profileId },
+      data: {
+        TrackVariants: {
+          set: variantIds.map((id) => ({
             id,
           })),
         },
@@ -51,33 +58,47 @@ export class ProfileRepository {
   async findProfileWithLibrary(
     profileId: string,
     snapshotId: string,
-  ): Promise<Prisma.ProfileGetPayload<{
-    include: {
-      ProfileLibrary: {
-        include: {
-          trackVariant: {
-            include: { Track: true };
-          };
-        };
-      };
-    };
-  }> | null> {
-    return await this.prismaService.getClient().profile.findFirst({
+  ): Promise<{
+    id: string;
+    snapshotId: string;
+    tracks: {
+      trackId: string;
+      artist: string;
+      artistId: string;
+      title: string;
+      album: string;
+      releaseDate: string;
+      durationMs: number;
+      trackVariantId: string;
+    }[];
+  }> {
+    const profileData = await this.prismaService.getClient().profile.findFirst({
       where: {
         id: profileId,
-        snapshotId: snapshotId,
+        snapshotId,
       },
       include: {
-        ProfileLibrary: {
-          include: {
-            trackVariant: {
-              include: {
-                Track: true,
-              },
-            },
-          },
+        TrackVariants: {
+          include: { Track: true },
         },
       },
     });
+
+    if (!profileData) return null;
+
+    return {
+      id: profileData.id,
+      snapshotId: profileData.snapshotId,
+      tracks: profileData.TrackVariants.map((variant) => ({
+        trackId: variant.trackId,
+        artist: variant.Track.artist,
+        artistId: variant.Track.artistId,
+        title: variant.Track.title,
+        album: variant.Track.album,
+        releaseDate: variant.Track.releaseDate,
+        durationMs: variant.Track.durationMs,
+        trackVariantId: variant.id,
+      })),
+    };
   }
 }

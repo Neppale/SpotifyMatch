@@ -23,7 +23,7 @@ export class ProfileController {
   @Post('compare')
   async compare(
     @Body()
-    { firstProfile, secondProfile, advanced, saveResults }: CompareProfileDto,
+    { firstProfile, secondProfile }: CompareProfileDto,
     @Headers('x-session-id') sessionId: string,
     @Res() context: Response,
   ): Promise<void> {
@@ -32,8 +32,6 @@ export class ProfileController {
       {
         firstProfile,
         secondProfile,
-        advanced,
-        saveResults,
       },
       sessionId,
     );

@@ -30,7 +30,7 @@ export class AxiosExceptionFilter implements ExceptionFilter {
 
     const body = request.body as CompareProfileDto;
     this.logger.error(
-      `User had a ${statusCode} error comparing profiles ${body.firstProfile} and ${body.secondProfile} with advanced being ${body.advanced}.`,
+      `User had a ${statusCode} error comparing profiles ${body.firstProfile} and ${body.secondProfile}.`,
     );
 
     response.status(statusCode).json({

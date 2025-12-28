@@ -265,7 +265,6 @@ export class TrackProcessingService {
         ) {
           track = await this.updateTrackWithVariants(
             sourceTrackData.existingTrackId,
-            sourceTrackData.track,
             allVariants,
           );
         } else {
@@ -284,7 +283,6 @@ export class TrackProcessingService {
           const existingTrack = existingVariants[0].Track;
           track = await this.updateTrackWithVariants(
             existingTrack.id,
-            sourceTrackData.track,
             allVariants,
           );
         } else {
@@ -344,7 +342,6 @@ export class TrackProcessingService {
 
   private async updateTrackWithVariants(
     trackId: string,
-    trackData: NormalizedTrackData,
     variants: Prisma.TrackVariantCreateWithoutTrackInput[],
   ): Promise<Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>> {
     const sourceVariant = variants.find((v) => v.isSourceTrack) || variants[0];
