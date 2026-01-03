@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Track {
@@ -43,12 +43,12 @@ model TrackVariant {
   @@index([spotifyId])
   @@index([trackId, isSourceTrack])
   @@index([profileId, trackId])
-  @@unique([profileId, trackId])
+  @@index([profileId])
   @@unique([trackId, spotifyId, isSourceTrack])
 }
 
 model Profile {
-  id             String           @unique @id // will be the Spotify user ID
+  id             String           @unique @id
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   snapshotId     String           @map("snapshot_id")

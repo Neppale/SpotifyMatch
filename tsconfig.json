@@ -20,6 +20,7 @@
       "@Profile/*": ["src/profile/*"],
       "@Tracks/*": ["src/tracks/*"],
       "@Utils/*": ["src/utils/*"],
+      "@Shared/*": ["src/shared/*"],
       "@PrismaClient": ["generated/prisma/client"]
     },
     "incremental": true,

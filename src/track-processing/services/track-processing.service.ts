@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthService } from '@Utils/auth/services/auth.service';
-import { TrackService } from '@Tracks/services/track.service';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import { ProfileRepository } from '@Profile/services/profile.repository';
 import { DetailedTrack } from '@Tracks/models/detailed-track.model';
 import { ProcessProfilesMessage } from '../models/process-profiles-message.dto';
 import { Prisma } from '@PrismaClient';
 import axios from 'axios';
+import { TrackProcessingEventEmitter } from './track-processing-event-emitter.service';
+import { ProfileComparer } from '@Shared/services/profile-comparer.service';
 
 export interface NormalizedTrackData {
   artist: string;
@@ -28,6 +29,8 @@ export class TrackProcessingService {
     private readonly authService: AuthService,
     private readonly trackRepository: TrackRepository,
     private readonly profileRepository: ProfileRepository,
+    private readonly eventEmitter: TrackProcessingEventEmitter,
+    private readonly profileComparer: ProfileComparer,
   ) {}
 
   async processProfiles(data: ProcessProfilesMessage): Promise<void> {
@@ -35,24 +38,69 @@ export class TrackProcessingService {
       `Processing ${data.profiles.length} profile(s) with track processing for session ${data.sessionId}`,
     );
 
-    const allSpotifyIds = new Set<string>();
-    for (const profile of data.profiles) {
-      profile.spotifyIds.forEach((id) => allSpotifyIds.add(id));
+    try {
+      const allSpotifyIds = new Set<string>();
+      for (const profile of data.profiles) {
+        profile.spotifyIds.forEach((id) => allSpotifyIds.add(id));
+      }
+
+      const trackDataMap = await this.fetchAllTrackData(
+        Array.from(allSpotifyIds),
+      );
+
+      const normalizedTracks = this.normalizeTrackData(trackDataMap);
+
+      const tracksByArtistId = this.groupTracksByArtistId(normalizedTracks);
+
+      const processedTracks =
+        await this.processTracksByArtistId(tracksByArtistId);
+
+      await this.saveTracksAndVariants(processedTracks);
+
+      this.eventEmitter.emitForSession('progress', data.sessionId, {
+        progress: 80,
+      });
+
+      await this.saveProfilesAndLibraries(data.profiles);
+
+      this.logger.log(`Processed ${processedTracks.size} tracks`);
+
+      // TODO: Build later to compare more than 2 profiles at a time!
+      if (data.profiles.length === 2) {
+        const [firstProfile, secondProfile] = data.profiles;
+        const [firstProfileData, secondProfileData] = await Promise.all([
+          this.profileRepository.findProfileWithLibrary(
+            firstProfile.profileId,
+            firstProfile.snapshotId,
+          ),
+          this.profileRepository.findProfileWithLibrary(
+            secondProfile.profileId,
+            secondProfile.snapshotId,
+          ),
+        ]);
+
+        if (firstProfileData && secondProfileData) {
+          const comparisonResult = this.profileComparer.compare(
+            firstProfileData.tracks,
+            secondProfileData.tracks,
+          );
+
+          this.eventEmitter.emitForSession('comparison', data.sessionId, {
+            comparison: comparisonResult,
+          });
+        }
+      }
+
+      this.eventEmitter.emitForSession('completed', data.sessionId, {
+        success: true,
+      });
+    } catch (error) {
+      this.eventEmitter.emitForSession('error', data.sessionId, {
+        error: 'Failed to process tracks',
+        details: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
     }
-
-    const trackDataMap = await this.fetchAllTrackData(
-      Array.from(allSpotifyIds),
-    );
-
-    const normalizedTracks = this.normalizeTrackData(trackDataMap);
-
-    const tracksByArtistId = this.groupTracksByArtistId(normalizedTracks);
-
-    const processedTracks =
-      await this.processTracksByArtistId(tracksByArtistId);
-
-    await this.saveTracksAndVariants(processedTracks);
-    await this.saveProfilesAndLibraries(data.profiles);
   }
 
   private async fetchAllTrackData(
@@ -375,13 +423,7 @@ export class TrackProcessingService {
   private async saveProfilesAndLibraries(
     profiles: ProcessProfilesMessage['profiles'],
   ): Promise<void> {
-    for (const profile of profiles) {
-      await this.profileRepository.upsertProfile(
-        profile.profileId,
-        profile.spotifyIds,
-        profile.snapshotId,
-      );
-    }
+    await this.profileRepository.upsertManyProfiles(profiles);
   }
 
   private async getBatchedDetailedTracks(

@@ -9,6 +9,7 @@ import { PrismaModule } from '@Prisma/prisma.module';
 import { TrackRepository } from '@Tracks/repositories/track.repository';
 import { TrackService } from '@Tracks/services/track.service';
 import { ProfileRepository } from '@Profile/services/profile.repository';
+import { ProfileComparer } from '@Shared/services/profile-comparer.service';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -36,6 +37,7 @@ dotenv.config();
     TrackRepository,
     TrackService,
     ProfileRepository,
+    ProfileComparer,
   ],
   exports: [TrackProcessingEventEmitter],
 })

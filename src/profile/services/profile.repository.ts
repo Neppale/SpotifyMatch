@@ -6,53 +6,80 @@ import { Prisma } from '@PrismaClient';
 export class ProfileRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async upsertProfile(
-    profileId: string,
-    spotifyIds: string[],
-    snapshotId: string,
+  async upsertManyProfiles(
+    profiles: Array<{
+      profileId: string;
+      spotifyIds: string[];
+      snapshotId: string;
+    }>,
   ): Promise<void> {
+    if (!profiles.length) return;
+
+    // Fetch all unique spotifyIds across all profiles
+    const allSpotifyIds = Array.from(
+      new Set(profiles.flatMap((p) => p.spotifyIds)),
+    );
+
     const trackVariants = await this.prismaService
       .getClient()
       .trackVariant.findMany({
         where: {
           spotifyId: {
-            in: spotifyIds,
+            in: allSpotifyIds,
           },
         },
-        select: { id: true },
+        select: { id: true, spotifyId: true },
       });
 
-    const variantIds = trackVariants.map((tv) => tv.id);
+    // Map spotifyId -> variant id
+    const spotifyIdToVariantId = new Map<string, string>(
+      trackVariants.map((tv) => [tv.spotifyId, tv.id]),
+    );
 
-    await this.prismaService.getClient().profile.upsert({
-      where: { id: profileId },
-      update: {
-        snapshotId,
-        updatedAt: new Date(),
-      },
-      create: {
-        id: profileId,
-        snapshotId,
-      },
-    });
+    // Upsert all profiles in parallel
+    await Promise.all(
+      profiles.map(async ({ profileId, snapshotId }) => {
+        await this.prismaService.getClient().profile.upsert({
+          where: { id: profileId },
+          update: {
+            snapshotId,
+            updatedAt: new Date(),
+          },
+          create: {
+            id: profileId,
+            snapshotId,
+          },
+        });
+      }),
+    );
 
-    await this.updateProfileLibrary(profileId, variantIds);
+    // Update profile libraries
+    const libraries = profiles.map((p) => ({
+      profileId: p.profileId,
+      variantIds: p.spotifyIds.map((spotifyId) =>
+        spotifyIdToVariantId.get(spotifyId),
+      ),
+    }));
+    await this.updateManyProfileLibraries(libraries);
   }
 
-  private async updateProfileLibrary(
-    profileId: string,
-    variantIds: string[],
+  private async updateManyProfileLibraries(
+    profileVariants: Array<{ profileId: string; variantIds: string[] }>,
   ): Promise<void> {
-    await this.prismaService.getClient().profile.update({
-      where: { id: profileId },
-      data: {
-        TrackVariants: {
-          set: variantIds.map((id) => ({
-            id,
-          })),
-        },
-      },
-    });
+    await Promise.all(
+      profileVariants.map(async ({ profileId, variantIds }) => {
+        await this.prismaService.getClient().profile.update({
+          where: { id: profileId },
+          data: {
+            TrackVariants: {
+              set: variantIds.map((id) => ({
+                id,
+              })),
+            },
+          },
+        });
+      }),
+    );
   }
 
   async findProfileWithLibrary(
