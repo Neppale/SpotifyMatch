@@ -15,7 +15,6 @@ export class ProfileRepository {
   ): Promise<void> {
     if (!profiles.length) return;
 
-    // Fetch all unique spotifyIds across all profiles
     const allSpotifyIds = Array.from(
       new Set(profiles.flatMap((p) => p.spotifyIds)),
     );
@@ -24,19 +23,17 @@ export class ProfileRepository {
       .getClient()
       .trackVariant.findMany({
         where: {
-          spotifyId: {
+          id: {
             in: allSpotifyIds,
           },
         },
-        select: { id: true, spotifyId: true },
+        select: { id: true },
       });
 
-    // Map spotifyId -> variant id
     const spotifyIdToVariantId = new Map<string, string>(
-      trackVariants.map((tv) => [tv.spotifyId, tv.id]),
+      trackVariants.map((tv) => [tv.id, tv.id]),
     );
 
-    // Upsert all profiles in parallel
     await Promise.all(
       profiles.map(async ({ profileId, snapshotId }) => {
         await this.prismaService.getClient().profile.upsert({
@@ -53,7 +50,6 @@ export class ProfileRepository {
       }),
     );
 
-    // Update profile libraries
     const libraries = profiles.map((p) => ({
       profileId: p.profileId,
       variantIds: p.spotifyIds.map((spotifyId) =>
@@ -66,20 +62,37 @@ export class ProfileRepository {
   private async updateManyProfileLibraries(
     profileVariants: Array<{ profileId: string; variantIds: string[] }>,
   ): Promise<void> {
-    await Promise.all(
-      profileVariants.map(async ({ profileId, variantIds }) => {
-        await this.prismaService.getClient().profile.update({
-          where: { id: profileId },
-          data: {
-            TrackVariants: {
-              set: variantIds.map((id) => ({
-                id,
-              })),
+    await this.prismaService.getClient().$transaction(async (prisma) => {
+      await Promise.all(
+        profileVariants.map(async ({ profileId, variantIds }) => {
+          const profile = await prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { trackVariants: { select: { id: true } } },
+          });
+          const currentVariantIds = new Set(
+            (profile?.trackVariants ?? []).map((tv) => tv.id),
+          );
+          const newVariantIds = new Set(variantIds);
+
+          const variantIdsToConnect = [...newVariantIds].filter(
+            (id) => !currentVariantIds.has(id) && !!id,
+          );
+          const variantIdsToDisconnect = [...currentVariantIds].filter(
+            (id) => !newVariantIds.has(id) && !!id,
+          );
+
+          await prisma.profile.update({
+            where: { id: profileId },
+            data: {
+              trackVariants: {
+                connect: variantIdsToConnect.map((id) => ({ id })),
+                disconnect: variantIdsToDisconnect.map((id) => ({ id })),
+              },
             },
-          },
-        });
-      }),
-    );
+          });
+        }),
+      );
+    });
   }
 
   async findProfileWithLibrary(
@@ -105,7 +118,7 @@ export class ProfileRepository {
         snapshotId,
       },
       include: {
-        TrackVariants: {
+        trackVariants: {
           include: { Track: true },
         },
       },
@@ -116,7 +129,7 @@ export class ProfileRepository {
     return {
       id: profileData.id,
       snapshotId: profileData.snapshotId,
-      tracks: profileData.TrackVariants.map((variant) => ({
+      tracks: profileData.trackVariants.map((variant) => ({
         trackId: variant.trackId,
         artist: variant.Track.artist,
         artistId: variant.Track.artistId,

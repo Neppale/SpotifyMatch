@@ -27,24 +27,19 @@ model Track {
 }
 
 model TrackVariant {
-  id             String           @id @default(uuid())
+  id             String           @id @unique
   trackId        String           @map("track_id")
   Track          Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  spotifyId      String           @map("spotify_id")
   score          Int
   popularity     Int            
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   isSourceTrack  Boolean          @default(false) @map("is_source_track")
-  Profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  profileId String? @map("profile_id")
+  profiles       Profile[]        @relation("ProfileTrackVariants")
 
-
-  @@index([spotifyId])
+  @@index([id])
   @@index([trackId, isSourceTrack])
-  @@index([profileId, trackId])
-  @@index([profileId])
-  @@unique([trackId, spotifyId, isSourceTrack])
+  @@unique([trackId, id, isSourceTrack])
 }
 
 model Profile {
@@ -52,7 +47,7 @@ model Profile {
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   snapshotId     String           @map("snapshot_id")
-  TrackVariants TrackVariant[]
+  trackVariants  TrackVariant[]   @relation("ProfileTrackVariants")
 
   @@index([id])
 }

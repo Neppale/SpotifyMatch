@@ -11,7 +11,7 @@ export class TrackRepository {
   ): Promise<Prisma.TrackVariantGetPayload<{ include: { Track: true } }>[]> {
     return await this.prismaService.getClient().trackVariant.findMany({
       where: {
-        spotifyId: { in: spotifyIds },
+        id: { in: spotifyIds },
       },
       include: {
         Track: true,
@@ -19,104 +19,59 @@ export class TrackRepository {
     });
   }
 
-  async upsertTrackVariant(
-    trackId: string,
-    spotifyId: string,
-    isSourceTrack: boolean,
-    popularity: number,
-    score: number,
-  ): Promise<TrackVariant> {
-    return await this.prismaService.getClient().trackVariant.upsert({
-      where: {
-        trackId_spotifyId_isSourceTrack: {
-          trackId,
-          spotifyId,
-          isSourceTrack,
-        },
+  async upsertTrackWithVariants(
+    trackData: Prisma.TrackCreateInput,
+    variants: Prisma.TrackVariantCreateWithoutTrackInput[],
+  ): Promise<Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>> {
+    const track = await this.prismaService.getClient().track.upsert({
+      where: { id: trackData.id ?? '' },
+      create: {
+        album: trackData.album,
+        artist: trackData.artist,
+        artistId: trackData.artistId,
+        title: trackData.title,
+        releaseDate: trackData.releaseDate,
+        durationMs: trackData.durationMs,
       },
       update: {
-        spotifyId,
-        score,
-        updatedAt: new Date(),
-        popularity,
-      },
-      create: {
-        trackId,
-        spotifyId,
-        isSourceTrack,
-        score,
-        popularity,
+        album: trackData.album,
+        artist: trackData.artist,
+        artistId: trackData.artistId,
+        title: trackData.title,
+        releaseDate: trackData.releaseDate,
+        durationMs: trackData.durationMs,
       },
     });
-  }
 
-  async createSourceTrackWithVariants(
-    trackData: Prisma.TrackCreateWithoutTrackVariantInput,
-    variantData: Prisma.TrackVariantCreateWithoutTrackInput[],
-  ): Promise<Track> {
-    const track = await this.prismaService
-      .getClient()
-      .$transaction(async (tx) => {
-        const track = await tx.track.create({
-          data: {
-            album: trackData.album,
-            artist: trackData.artist,
-            artistId: trackData.artistId,
-            title: trackData.title,
-            releaseDate: trackData.releaseDate,
-            durationMs: trackData.durationMs,
+    const createdVariants: TrackVariant[] = [];
+    for (const variant of variants) {
+      const createdVariant = await this.prismaService
+        .getClient()
+        .trackVariant.upsert({
+          where: {
+            id: variant.id,
+          },
+          create: {
+            id: variant.id,
+            trackId: track.id,
+            isSourceTrack: variant.isSourceTrack,
+            score: variant.score,
+            popularity: variant.popularity,
+          },
+          update: {
+            isSourceTrack: variant.isSourceTrack,
+            score: variant.score,
+            popularity: variant.popularity,
+            trackId: track.id,
           },
         });
-        for (const variant of variantData) {
-          await tx.trackVariant.create({
-            data: {
-              trackId: track.id,
-              spotifyId: variant.spotifyId,
-              isSourceTrack: variant.isSourceTrack,
-              score: variant.score,
-              popularity: variant.popularity,
-            },
-          });
-        }
-        return track;
-      });
-
-    return track;
-  }
-
-  async createVariantForSourceTrack(
-    sourceTrackId: string,
-    variantData: Prisma.TrackVariantCreateWithoutTrackInput,
-  ): Promise<TrackVariant> {
-    const existingVariant = await this.prismaService
-      .getClient()
-      .trackVariant.findFirst({
-        where: {
-          trackId: sourceTrackId,
-          spotifyId: variantData.spotifyId,
-        },
-      });
-
-    if (existingVariant) {
-      return await this.prismaService.getClient().trackVariant.update({
-        where: { id: existingVariant.id },
-        data: {
-          popularity: variantData.popularity,
-          score: variantData.score,
-          updatedAt: new Date(),
-        },
-      });
+      createdVariants.push(createdVariant);
     }
 
-    return await this.prismaService.getClient().trackVariant.create({
-      data: {
-        trackId: sourceTrackId,
-        spotifyId: variantData.spotifyId,
-        isSourceTrack: false,
-        score: variantData.score,
-        popularity: variantData.popularity,
-      },
-    });
+    return {
+      ...track,
+      TrackVariant: createdVariants,
+    };
   }
 
   async findTracksByArtistId(
@@ -147,6 +102,22 @@ export class TrackRepository {
     return await this.prismaService.getClient().track.findUnique({
       where: { id: trackId },
       include: { TrackVariant: true },
+    });
+  }
+
+  async updateVariantTrackId(
+    variantId: string,
+    newTrackId: string,
+  ): Promise<void> {
+    await this.prismaService.getClient().trackVariant.update({
+      where: { id: variantId },
+      data: { trackId: newTrackId },
+    });
+  }
+
+  async deleteTrack(trackId: string): Promise<void> {
+    await this.prismaService.getClient().track.delete({
+      where: { id: trackId },
     });
   }
 }

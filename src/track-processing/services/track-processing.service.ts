@@ -55,8 +55,6 @@ export class TrackProcessingService {
       const processedTracks =
         await this.processTracksByArtistId(tracksByArtistId);
 
-      await this.saveTracksAndVariants(processedTracks);
-
       this.eventEmitter.emitForSession('progress', data.sessionId, {
         progress: 80,
       });
@@ -85,16 +83,17 @@ export class TrackProcessingService {
             secondProfileData.tracks,
           );
 
-          this.eventEmitter.emitForSession('comparison', data.sessionId, {
-            comparison: comparisonResult,
+          this.eventEmitter.emitForSession('completed', data.sessionId, {
+            success: true,
+            data: comparisonResult,
           });
         }
       }
-
-      this.eventEmitter.emitForSession('completed', data.sessionId, {
-        success: true,
-      });
     } catch (error) {
+      this.logger.error(
+        `Failed to process tracks for session ${data.sessionId}`,
+        error,
+      );
       this.eventEmitter.emitForSession('error', data.sessionId, {
         error: 'Failed to process tracks',
         details: error instanceof Error ? error.message : String(error),
@@ -110,9 +109,7 @@ export class TrackProcessingService {
 
     const existingVariants =
       await this.trackRepository.getTracksBySpotifyId(spotifyIds);
-    const existingSpotifyIds = new Set(
-      existingVariants.map((v) => v.spotifyId),
-    );
+    const existingSpotifyIds = new Set(existingVariants.map((v) => v.id));
 
     const tracksToFetch = spotifyIds.filter(
       (id) => !existingSpotifyIds.has(id),
@@ -121,8 +118,8 @@ export class TrackProcessingService {
     if (tracksToFetch.length === 0) {
       for (const variant of existingVariants) {
         const track = variant.Track;
-        trackDataMap.set(variant.spotifyId, {
-          id: variant.spotifyId,
+        trackDataMap.set(variant.id, {
+          id: variant.id,
           name: track.title,
           artists: [{ id: track.artistId, name: track.artist }],
           album: { name: track.album, release_date: track.releaseDate },
@@ -140,8 +137,8 @@ export class TrackProcessingService {
 
     for (const variant of existingVariants) {
       const track = variant.Track;
-      trackDataMap.set(variant.spotifyId, {
-        id: variant.spotifyId,
+      trackDataMap.set(variant.id, {
+        id: variant.id,
         name: track.title,
         artists: [{ id: track.artistId, name: track.artist }],
         album: { name: track.album, release_date: track.releaseDate },
@@ -174,7 +171,7 @@ export class TrackProcessingService {
         popularity: track.popularity || 0,
         variants: [
           {
-            spotifyId,
+            id: spotifyId,
             isSourceTrack: false,
             score: 5,
             popularity: track.popularity || 0,
@@ -221,23 +218,26 @@ export class TrackProcessingService {
       Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>
     >();
 
+    const SCORE_THRESHOLD = 4;
+    const allUpsertPromises: Promise<{
+      result: Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>;
+      artistId: string;
+    }>[] = [];
+
     for (const [artistId, tracks] of tracksByArtistId.entries()) {
       const existingTracks =
         await this.trackRepository.findTracksByArtistId(artistId);
 
-      const newTrackSpotifyIds = new Set<string>();
+      const allTrackIds = new Set<string>();
       for (const track of tracks) {
         for (const variant of track.variants) {
-          newTrackSpotifyIds.add(variant.spotifyId);
+          allTrackIds.add(variant.id);
         }
       }
 
       const allTracksForArtist: Array<{
         track: NormalizedTrackData;
         existingTrackId?: string;
-        existingVariant?: Prisma.TrackVariantGetPayload<{
-          include: { Track: true };
-        }>;
       }> = [];
 
       for (const track of tracks) {
@@ -245,7 +245,7 @@ export class TrackProcessingService {
       }
 
       for (const existingVariant of existingTracks) {
-        if (!newTrackSpotifyIds.has(existingVariant.spotifyId)) {
+        if (!allTrackIds.has(existingVariant.id)) {
           const existingTrack = existingVariant.Track;
           allTracksForArtist.push({
             track: {
@@ -258,7 +258,7 @@ export class TrackProcessingService {
               popularity: existingVariant.popularity,
               variants: [
                 {
-                  spotifyId: existingVariant.spotifyId,
+                  id: existingVariant.id,
                   isSourceTrack: existingVariant.isSourceTrack,
                   score: existingVariant.score,
                   popularity: existingVariant.popularity,
@@ -266,82 +266,111 @@ export class TrackProcessingService {
               ],
             },
             existingTrackId: existingTrack.id,
-            existingVariant,
           });
         }
       }
 
-      allTracksForArtist.sort(
-        (a, b) => b.track.popularity - a.track.popularity,
-      );
+      const trackGroups: Array<{
+        tracks: Array<{ track: NormalizedTrackData; existingTrackId?: string }>;
+        allVariants: Prisma.TrackVariantCreateWithoutTrackInput[];
+        targetTrackId?: string;
+        artistId: string;
+      }> = [];
 
-      const sourceTrackData = allTracksForArtist[0];
-      const remainingTracks = allTracksForArtist.slice(1);
+      for (let i = 0; i < allTracksForArtist.length; i++) {
+        const currentTrack = allTracksForArtist[i];
+        let foundGroup = false;
 
-      sourceTrackData.track.variants[0].isSourceTrack = true;
-      sourceTrackData.track.variants[0].score = 5;
+        for (const group of trackGroups) {
+          for (const groupTrack of group.tracks) {
+            const score = this.getTrackVariantScore(
+              groupTrack.track,
+              currentTrack.track,
+            );
 
-      const allVariants: Prisma.TrackVariantCreateWithoutTrackInput[] = [
-        ...sourceTrackData.track.variants,
-      ];
+            if (score >= SCORE_THRESHOLD) {
+              group.tracks.push(currentTrack);
+              for (const variant of currentTrack.track.variants) {
+                variant.isSourceTrack = false;
+                variant.score = score;
+                group.allVariants.push(variant);
+              }
+              if (currentTrack.existingTrackId) {
+                if (!group.targetTrackId) {
+                  group.targetTrackId = currentTrack.existingTrackId;
+                }
+              }
+              foundGroup = true;
+              break;
+            }
+          }
+          if (foundGroup) break;
+        }
 
-      for (const variantTrackData of remainingTracks) {
-        const SCORE_THRESHOLD = 3;
-        const score = this.getTrackVariantScore(
-          sourceTrackData.track,
-          variantTrackData.track,
-        );
-        if (score >= SCORE_THRESHOLD) {
-          for (const variant of variantTrackData.track.variants) {
-            variant.isSourceTrack = false;
-            variant.score = score;
-            allVariants.push(variant);
+        if (!foundGroup) {
+          const newGroup = {
+            tracks: [currentTrack],
+            allVariants: [...currentTrack.track.variants],
+            targetTrackId: currentTrack.existingTrackId,
+            artistId,
+          };
+          trackGroups.push(newGroup);
+        }
+      }
+
+      for (const group of trackGroups) {
+        if (group.allVariants.length === 0) continue;
+
+        let mostPopularVariant = group.allVariants[0];
+        for (const variant of group.allVariants) {
+          if (variant.popularity > mostPopularVariant.popularity) {
+            mostPopularVariant = variant;
           }
         }
-      }
 
-      let track: Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>;
-
-      if (sourceTrackData.existingTrackId) {
-        const existingTrack = await this.trackRepository.getTracksBySpotifyId([
-          sourceTrackData.track.variants[0].spotifyId,
-        ]);
-
-        if (
-          existingTrack.length > 0 &&
-          existingTrack[0].Track.id === sourceTrackData.existingTrackId
-        ) {
-          track = await this.updateTrackWithVariants(
-            sourceTrackData.existingTrackId,
-            allVariants,
-          );
-        } else {
-          track = await this.createTrackWithVariants(
-            sourceTrackData.track,
-            allVariants,
-          );
+        for (const variant of group.allVariants) {
+          if (variant.id === mostPopularVariant.id) {
+            variant.isSourceTrack = true;
+            variant.score = 5;
+          } else {
+            variant.isSourceTrack = false;
+            if (variant.score === 5) {
+              const variantTrack = group.tracks.find((t) =>
+                t.track.variants.some((v) => v.id === variant.id),
+              );
+              if (variantTrack) {
+                const sourceTrack = group.tracks.find((t) =>
+                  t.track.variants.some((v) => v.id === mostPopularVariant.id),
+                );
+                variant.score = this.getTrackVariantScore(
+                  sourceTrack?.track || group.tracks[0].track,
+                  variantTrack.track,
+                );
+              }
+            }
+          }
         }
-      } else {
-        const existingVariants =
-          await this.trackRepository.getTracksBySpotifyId([
-            sourceTrackData.track.variants[0].spotifyId,
-          ]);
 
-        if (existingVariants.length > 0) {
-          const existingTrack = existingVariants[0].Track;
-          track = await this.updateTrackWithVariants(
-            existingTrack.id,
-            allVariants,
-          );
-        } else {
-          track = await this.createTrackWithVariants(
-            sourceTrackData.track,
-            allVariants,
-          );
-        }
+        const representativeTrack = group.tracks[0].track;
+        const trackDataForUpsert: Prisma.TrackCreateInput = {
+          ...representativeTrack,
+          ...(group.targetTrackId && { id: group.targetTrackId }),
+        };
+
+        const upsertPromise = this.trackRepository
+          .upsertTrackWithVariants(trackDataForUpsert, group.allVariants)
+          .then((result) => ({ result, artistId: group.artistId }));
+
+        allUpsertPromises.push(upsertPromise);
       }
+    }
 
-      processed.set(artistId, track);
+    const results = await Promise.all(allUpsertPromises);
+
+    for (const result of results) {
+      if (!processed.has(result.artistId)) {
+        processed.set(result.artistId, result.result);
+      }
     }
 
     return processed;
@@ -352,72 +381,12 @@ export class TrackProcessingService {
     secondTrack: NormalizedTrackData,
   ): number {
     let score = 0;
-    if (firstTrack.artist === secondTrack.artist) score++;
-    if (firstTrack.title === secondTrack.title) score++;
-    if (firstTrack.album === secondTrack.album) score++;
-    if (firstTrack.releaseDate === secondTrack.releaseDate) score++;
-    if (firstTrack.durationMs === secondTrack.durationMs) score++;
+    if (firstTrack.title === secondTrack.title) score += 2;
+    if (firstTrack.album === secondTrack.album) score -= 1;
+    if (firstTrack.releaseDate === secondTrack.releaseDate) score -= 1;
+    if (firstTrack.durationMs === secondTrack.durationMs) score += 2;
 
     return score;
-  }
-
-  private async createTrackWithVariants(
-    trackData: NormalizedTrackData,
-    variants: Prisma.TrackVariantCreateWithoutTrackInput[],
-  ): Promise<Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>> {
-    const createdTrack =
-      await this.trackRepository.createSourceTrackWithVariants(
-        {
-          artist: trackData.artist,
-          artistId: trackData.artistId,
-          title: trackData.title,
-          album: trackData.album,
-          releaseDate: trackData.releaseDate,
-          durationMs: trackData.durationMs,
-        },
-        variants,
-      );
-
-    const trackWithVariants =
-      await this.trackRepository.findTrackWithVariantsById(createdTrack.id);
-
-    if (!trackWithVariants) {
-      throw new Error('Failed to create track');
-    }
-
-    return trackWithVariants;
-  }
-
-  private async updateTrackWithVariants(
-    trackId: string,
-    variants: Prisma.TrackVariantCreateWithoutTrackInput[],
-  ): Promise<Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>> {
-    const sourceVariant = variants.find((v) => v.isSourceTrack) || variants[0];
-    await this.trackRepository.upsertTrackVariant(
-      trackId,
-      sourceVariant.spotifyId,
-      true,
-      sourceVariant.popularity,
-      sourceVariant.score,
-    );
-
-    for (const variant of variants) {
-      if (!variant.isSourceTrack) {
-        await this.trackRepository.createVariantForSourceTrack(
-          trackId,
-          variant,
-        );
-      }
-    }
-
-    const trackWithVariants =
-      await this.trackRepository.findTrackWithVariantsById(trackId);
-
-    if (!trackWithVariants) {
-      throw new Error('Failed to update track');
-    }
-
-    return trackWithVariants;
   }
 
   private async saveProfilesAndLibraries(
@@ -451,19 +420,5 @@ export class TrackProcessingService {
     ).then((data) => {
       return data.flat().filter((track) => track !== null);
     });
-  }
-
-  private async saveTracksAndVariants(
-    tracks: Map<
-      string,
-      Prisma.TrackGetPayload<{ include: { TrackVariant: true } }>
-    >,
-  ): Promise<void> {
-    for (const [_artist, track] of tracks.entries()) {
-      await this.trackRepository.createSourceTrackWithVariants(
-        track,
-        track.TrackVariant,
-      );
-    }
   }
 }

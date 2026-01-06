@@ -42,28 +42,45 @@ export class TrackService {
 
   async getTrackIdsByPlaylistIds(playlistIds: string[]): Promise<string[]> {
     const playlistUrl = 'https://api.spotify.com/v1/playlists/';
-    const promises = playlistIds.map((playlistId) => {
-      return this.authService.requestWithAuth(async (token) => {
-        return await axios.get(`${playlistUrl}${playlistId}`, {
-          headers: {
-            Authorization: token,
+    const fields =
+      'items(track(id,name,href,album(name,href),artists(name,href),duration_ms,popularity))';
+
+    const playlistPromises = playlistIds.map(async (playlistId) => {
+      const trackIds: string[] = [];
+      let offset = 0;
+      let total = 1;
+
+      while (offset < total) {
+        const response = await this.authService.requestWithAuth(
+          async (token) => {
+            return await axios.get(`${playlistUrl}${playlistId}/tracks`, {
+              headers: {
+                Authorization: token,
+              },
+              params: {
+                limit: 50,
+                offset,
+                fields,
+              },
+            });
           },
-        });
-      });
-    });
-    const responses = await Promise.all(promises);
-
-    const tracks: string[] = [];
-    responses.forEach((response) => {
-      response.data.tracks.items.forEach((item: Item) => {
-        const formattedTrackId = item.track?.href?.replace(
-          'https://api.spotify.com/v1/tracks/',
-          '',
         );
-        if (formattedTrackId) tracks.push(formattedTrackId);
-      });
+        const data = response.data;
+        total = data.total ?? (data.items ? data.items.length : 0);
+        if (Array.isArray(data.items)) {
+          data.items.forEach((item: Item) => {
+            const formattedTrackId = item.track?.id;
+            if (formattedTrackId) trackIds.push(formattedTrackId);
+          });
+        }
+        offset += 50;
+      }
+      return trackIds;
     });
 
-    return tracks;
+    const results = await Promise.all(playlistPromises).then((results) =>
+      results.flat(),
+    );
+    return results;
   }
 }

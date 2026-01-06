@@ -12,6 +12,7 @@ import { ProfileService } from '@Profile/services/profile.service';
 import { Response } from 'express';
 import { TrackProcessingEventEmitter } from '../track-processing/services/track-processing-event-emitter.service';
 import { Observable } from 'rxjs';
+import { ProfileComparisonFormattedResponse } from './models/profile-comparison.model';
 
 @Controller('profiles')
 export class ProfileController {
@@ -42,20 +43,37 @@ export class ProfileController {
     @Param('sessionId') sessionId: string,
   ): Observable<MessageEvent> {
     return new Observable<MessageEvent>((observer) => {
-      const listener = (data: { success: boolean; error?: string }) => {
-        observer.next({ data: JSON.stringify(data) } as MessageEvent);
-        if (data.success) {
-          observer.complete();
-        }
+      const listener = (data: {
+        success?: boolean;
+        error?: string;
+        progress?: number;
+        data?: ProfileComparisonFormattedResponse;
+      }) => {
         if (data.error) {
           observer.error(data.error);
+          observer.complete();
+        }
+        if (data.progress) {
+          observer.next({
+            data: JSON.stringify({ progress: data.progress }),
+          } as MessageEvent);
+        }
+        if (data.success) {
+          observer.next({ data: JSON.stringify(data.data) } as MessageEvent);
+          observer.complete();
         }
       };
 
+      this.eventEmitter.onForSession('success', sessionId, listener);
+      this.eventEmitter.onForSession('progress', sessionId, listener);
       this.eventEmitter.onForSession('completed', sessionId, listener);
+      this.eventEmitter.onForSession('error', sessionId, listener);
 
       return () => {
+        this.eventEmitter.offForSession('success', sessionId, listener);
+        this.eventEmitter.offForSession('progress', sessionId, listener);
         this.eventEmitter.offForSession('completed', sessionId, listener);
+        this.eventEmitter.offForSession('error', sessionId, listener);
       };
     });
   }
