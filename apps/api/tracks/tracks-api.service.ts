@@ -48,9 +48,10 @@ export class TracksApiService {
     const playlistPromises = playlistIds.map(async (playlistId) => {
       const trackIds: string[] = [];
       let offset = 0;
-      let total = 1;
+      const limit = 50;
+      let hasMore = true;
 
-      while (offset < total) {
+      while (hasMore) {
         const response = await this.authService.requestWithAuth(
           async (token) => {
             return await axios.get(`${playlistUrl}${playlistId}/tracks`, {
@@ -58,7 +59,7 @@ export class TracksApiService {
                 Authorization: token,
               },
               params: {
-                limit: 50,
+                limit,
                 offset,
                 fields,
               },
@@ -66,14 +67,15 @@ export class TracksApiService {
           },
         );
         const data = response.data;
-        total = data.total ?? (data.items ? data.items.length : 0);
+        const itemsCount = data.items?.length || 0;
+        hasMore = itemsCount === limit;
         if (Array.isArray(data.items)) {
           data.items.forEach((item: Item) => {
             const formattedTrackId = item.track?.id;
             if (formattedTrackId) trackIds.push(formattedTrackId);
           });
         }
-        offset += 50;
+        offset += limit;
       }
       return trackIds;
     });

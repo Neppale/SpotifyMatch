@@ -52,8 +52,7 @@ export class TrackProcessingService {
 
       const tracksByArtistId = this.groupTracksByArtistId(normalizedTracks);
 
-      const processedTracks =
-        await this.processTracksByArtistId(tracksByArtistId);
+      await this.processTracksByArtistId(tracksByArtistId);
 
       this.eventEmitter.emitForSession('progress', data.sessionId, {
         progress: 80,
@@ -131,20 +130,35 @@ export class TrackProcessingService {
     }
 
     const fetchedTracks = await this.getBatchedDetailedTracks(tracksToFetch);
+    const fetchedTrackIds = new Set<string>();
     for (const track of fetchedTracks) {
-      trackDataMap.set(track.id, track);
+      if (track && track.id) {
+        trackDataMap.set(track.id, track);
+        fetchedTrackIds.add(track.id);
+      }
+    }
+
+    const missingTrackIds = tracksToFetch.filter(
+      (id) => !fetchedTrackIds.has(id),
+    );
+    if (missingTrackIds.length > 0) {
+      this.logger.warn(
+        `Spotify API did not return ${missingTrackIds.length} track(s): ${missingTrackIds.slice(0, 10).join(', ')}${missingTrackIds.length > 10 ? '...' : ''}`,
+      );
     }
 
     for (const variant of existingVariants) {
-      const track = variant.Track;
-      trackDataMap.set(variant.id, {
-        id: variant.id,
-        name: track.title,
-        artists: [{ id: track.artistId, name: track.artist }],
-        album: { name: track.album, release_date: track.releaseDate },
-        duration_ms: track.durationMs,
-        popularity: variant.popularity || 0,
-      } as DetailedTrack);
+      if (!trackDataMap.has(variant.id)) {
+        const track = variant.Track;
+        trackDataMap.set(variant.id, {
+          id: variant.id,
+          name: track.title,
+          artists: [{ id: track.artistId, name: track.artist }],
+          album: { name: track.album, release_date: track.releaseDate },
+          duration_ms: track.durationMs,
+          popularity: variant.popularity || 0,
+        } as DetailedTrack);
+      }
     }
 
     return trackDataMap;
@@ -156,16 +170,11 @@ export class TrackProcessingService {
     const normalized: NormalizedTrackData[] = [];
 
     for (const [spotifyId, track] of trackDataMap.entries()) {
-      const artist = track.artists[0]?.name || '';
-      const artistId = track.artists[0]?.id || '';
-      const title = track.name || '';
-      const album = track.album?.name || '';
-
       normalized.push({
-        artist: artist.toUpperCase(),
-        artistId,
-        title: title.toUpperCase(),
-        album: album.toUpperCase(),
+        artist: track.artists[0].name.toUpperCase(),
+        artistId: track.artists[0].id,
+        title: track.name.toUpperCase(),
+        album: track.album?.name.toUpperCase() || '',
         releaseDate: track.album?.release_date || '',
         durationMs: track.duration_ms,
         popularity: track.popularity || 0,
@@ -189,11 +198,10 @@ export class TrackProcessingService {
     const grouped = new Map<string, NormalizedTrackData[]>();
 
     for (const track of tracks) {
-      const artistId = track.artistId;
-      if (!grouped.has(artistId)) {
-        grouped.set(artistId, []);
+      if (!grouped.has(track.artistId)) {
+        grouped.set(track.artistId, []);
       }
-      grouped.get(artistId)!.push({
+      grouped.get(track.artistId)!.push({
         artist: track.artist,
         artistId: track.artistId,
         title: track.title,
@@ -319,7 +327,9 @@ export class TrackProcessingService {
       }
 
       for (const group of trackGroups) {
-        if (group.allVariants.length === 0) continue;
+        if (group.allVariants.length === 0) {
+          continue;
+        }
 
         let mostPopularVariant = group.allVariants[0];
         for (const variant of group.allVariants) {
