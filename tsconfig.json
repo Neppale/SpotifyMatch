@@ -15,12 +15,10 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "paths": {
-      "@Playlist/*": ["src/playlist/*"],
-      "@Prisma/*": ["src/prisma/*"],
-      "@Profile/*": ["src/profile/*"],
-      "@Tracks/*": ["src/tracks/*"],
-      "@Utils/*": ["src/utils/*"],
-      "@Shared/*": ["src/shared/*"],
+      "@Playlist/*": ["apps/api/playlist/*"],
+      "@Prisma/*": ["apps/shared/prisma/*"],
+      "@Utils/*": ["apps/api/utils/*"],
+      "@Apps/*": ["apps/*"],
       "@PrismaClient": ["generated/prisma/client"]
     },
     "incremental": true,

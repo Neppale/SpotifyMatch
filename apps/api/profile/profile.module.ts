@@ -4,10 +4,10 @@ import { ProfileController } from '@Apps/api/profile/controllers/profile.control
 import { ProfileService } from '@Apps/api/profile/services/profile.service';
 import { TracksApiService } from '@Apps/api/tracks/tracks-api.service';
 import { ProfileSharedRepository } from '@Apps/shared/profile/profile-shared.repository';
-import { TrackProcessingEventEmitter } from '../../apps/track-processing/services/track-processing-event-emitter.service';
+import { TrackProcessingEventEmitter } from '@Apps/track-processing/services/track-processing-event-emitter.service';
 import { ProfileComparer } from '@Apps/shared/profile/services/profile-comparer.service';
 import { AuthModule } from '@Utils/auth/auth.module';
-import { PrismaModule } from '@Prisma/prisma.module';
+import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
 
 @Module({
   imports: [

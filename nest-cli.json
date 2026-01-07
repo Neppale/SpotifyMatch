@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "entryFile": "src/main.js",
-  "sourceRoot": "src",
+  "entryFile": "apps/api/main.js",
+  "sourceRoot": "apps/api",
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": [
@@ -17,9 +17,15 @@
   "projects": {
     "track-processing": {
       "type": "application",
-      "root": "src/track-processing",
-      "entryFile": "src/track-processing/main.js",
-      "sourceRoot": "src/track-processing"
+      "root": "apps/track-processing",
+      "entryFile": "apps/track-processing/main.js",
+      "sourceRoot": "apps/track-processing"
+    },
+    "api": {
+      "type": "application",
+      "root": "apps/api",
+      "entryFile": "apps/api/main.js",
+      "sourceRoot": "apps/api"
     }
   }
 }

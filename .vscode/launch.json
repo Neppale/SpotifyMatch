@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "Debug SpotifyMatch API",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:debug"],
+      "runtimeArgs": ["run", "start:api:debug"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "outputCapture": "std",
@@ -17,7 +17,7 @@
       "request": "launch",
       "name": "Debug Track Processing Service",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:tpdev"],
+      "runtimeArgs": ["run", "start:track-processing:debug"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "outputCapture": "std"
