@@ -170,6 +170,8 @@ export class TrackProcessingService {
     const normalized: NormalizedTrackData[] = [];
 
     for (const [spotifyId, track] of trackDataMap.entries()) {
+      const imageUrl = this.getLargestImage(track.album?.images);
+      
       normalized.push({
         artist: track.artists[0].name.toUpperCase(),
         artistId: track.artists[0].id,
@@ -184,6 +186,7 @@ export class TrackProcessingService {
             isSourceTrack: false,
             score: 5,
             popularity: track.popularity || 0,
+            imageUrl,
           },
         ],
       });
@@ -270,6 +273,7 @@ export class TrackProcessingService {
                   isSourceTrack: existingVariant.isSourceTrack,
                   score: existingVariant.score,
                   popularity: existingVariant.popularity,
+                  imageUrl: existingVariant.imageUrl,
                 },
               ],
             },
@@ -397,6 +401,20 @@ export class TrackProcessingService {
     if (firstTrack.durationMs === secondTrack.durationMs) score += 2;
 
     return score;
+  }
+
+  private getLargestImage(
+    images: Array<{ url: string; height: number; width: number }> | undefined,
+  ): string | null {
+    if (!images || images.length === 0) {
+      return null;
+    }
+
+    return images.reduce((largest, current) => {
+      const largestArea = largest.height * largest.width;
+      const currentArea = current.height * current.width;
+      return currentArea > largestArea ? current : largest;
+    }).url;
   }
 
   private async saveProfilesAndLibraries(

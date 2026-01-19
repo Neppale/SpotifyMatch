@@ -109,6 +109,7 @@ export class ProfileSharedRepository {
       releaseDate: string;
       durationMs: number;
       trackVariantId: string;
+      imageUrl: string | null;
     }[];
   }> {
     const profileData = await this.prismaService.getClient().profile.findFirst({
@@ -137,6 +138,7 @@ export class ProfileSharedRepository {
         releaseDate: variant.Track.releaseDate,
         durationMs: variant.Track.durationMs,
         trackVariantId: variant.id,
+        imageUrl: variant.imageUrl,
       })),
     };
   }

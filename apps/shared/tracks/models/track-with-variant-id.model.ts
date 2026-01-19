@@ -7,4 +7,5 @@ export class TrackWithVariantId {
   releaseDate: string;
   durationMs: number;
   trackVariantId: string;
+  imageUrl: string | null;
 }

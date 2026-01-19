@@ -57,12 +57,14 @@ export class TracksTrackProcessingRepository {
             isSourceTrack: variant.isSourceTrack,
             score: variant.score,
             popularity: variant.popularity,
+            imageUrl: variant.imageUrl,
           },
           update: {
             isSourceTrack: variant.isSourceTrack,
             score: variant.score,
             popularity: variant.popularity,
             trackId: track.id,
+            imageUrl: variant.imageUrl,
           },
         });
       createdVariants.push(createdVariant);

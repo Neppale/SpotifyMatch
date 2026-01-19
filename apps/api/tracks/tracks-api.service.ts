@@ -9,37 +9,6 @@ import { Track } from '@PrismaClient';
 export class TracksApiService {
   constructor(private readonly authService: AuthService) {}
 
-  async getTrack(trackId: string): Promise<Track> {
-    const trackUrl = 'https://api.spotify.com/v1/tracks/';
-    const fields =
-      'id,name,href,album(name,href),artists(name,href),duration_ms,popularity';
-    const response = await this.authService.requestWithAuth(async (token) => {
-      return await axios.get(`${trackUrl}${trackId}`, {
-        headers: {
-          Authorization: token,
-        },
-        params: {
-          fields,
-        },
-      });
-    });
-
-    const trackData: DetailedTrack = response.data;
-    const minimizedTrack: Track = {
-      id: trackData.id,
-      artistId: trackData.artists[0].id,
-      artist: trackData.artists[0].name,
-      title: trackData.name,
-      album: trackData.album.name,
-      releaseDate: trackData.album.release_date,
-      durationMs: trackData.duration_ms,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    return minimizedTrack;
-  }
-
   async getTrackIdsByPlaylistIds(playlistIds: string[]): Promise<string[]> {
     const playlistUrl = 'https://api.spotify.com/v1/playlists/';
     const fields =
