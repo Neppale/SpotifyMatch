@@ -8,56 +8,33 @@ export class ProfileComparer {
     firstProfileTracks: TrackWithVariantId[],
     secondProfileTracks: TrackWithVariantId[],
   ): ProfileComparisonFormattedResponse {
-    const smallerProfileTracks =
-      firstProfileTracks.length < secondProfileTracks.length
-        ? firstProfileTracks
-        : secondProfileTracks;
-    const largerProfileTracks =
-      firstProfileTracks.length < secondProfileTracks.length
-        ? secondProfileTracks
-        : firstProfileTracks;
+    const profiles = [firstProfileTracks, secondProfileTracks];
 
-    const sameTracks = new Map<
-      string,
-      {
-        trackId: string;
-        artist: string;
-        artistId: string;
-        title: string;
-        album: string;
-        releaseDate: string;
-        durationMs: number;
-        trackVariantId: string;
+    const exactTracks = this.filterExactTracks(profiles);
+
+    const similarTracks = this.filterSimilarTracks(profiles, exactTracks);
+
+    const allUniqueTrackIds = new Set<string>();
+    for (const profile of profiles) {
+      for (const track of profile) {
+        allUniqueTrackIds.add(track.trackId);
       }
-    >();
-    for (const track of smallerProfileTracks) {
-      sameTracks.set(track.trackId, {
-        ...track,
-        trackVariantId: track.trackVariantId,
-      });
-    }
-    for (const track of largerProfileTracks) {
-      sameTracks.set(track.trackId, {
-        ...track,
-        trackVariantId: track.trackVariantId,
-      });
     }
 
-    const similarTracks = this.filterSimilarTracks(
-      smallerProfileTracks,
-      largerProfileTracks,
-      sameTracks,
-    );
-    const totalTracks =
-      smallerProfileTracks.length +
-      largerProfileTracks.length -
-      sameTracks.size;
+    const totalTracks = firstProfileTracks.length + secondProfileTracks.length;
+    const uniqueTracks = allUniqueTrackIds.size;
     const percentage =
-      totalTracks === 0 ? 0 : Math.round((sameTracks.size / totalTracks) * 100);
+      totalTracks === 0 ? 0 : Math.round((uniqueTracks / totalTracks) * 100);
+
     const formattedResponse: ProfileComparisonFormattedResponse = {
-      message: this.buildMessage(percentage, totalTracks, sameTracks.size, 0),
+      message: this.buildMessage(
+        percentage,
+        totalTracks,
+        exactTracks.length,
+        similarTracks.length,
+      ),
       callToAction: this.buildCallToAction(),
-      tracks: Array.from(sameTracks.values()),
+      exactTracks,
       similarTracks,
     };
 
@@ -65,39 +42,104 @@ export class ProfileComparer {
   }
 
   private filterSimilarTracks(
-    smallerProfileTracks: TrackWithVariantId[],
-    largerProfileTracks: TrackWithVariantId[],
-    sameTracks: Map<string, TrackWithVariantId>,
+    profiles: TrackWithVariantId[][],
+    exactTracks: TrackWithVariantId[],
   ): TrackWithVariantId[] {
-    const similarTracks: TrackWithVariantId[] = [];
-    for (const track of sameTracks.values()) {
-      const trackVariants = [
-        smallerProfileTracks.find((t) => t.trackId === track.trackId)
-          ?.trackVariantId,
-        largerProfileTracks.find((t) => t.trackId === track.trackId)
-          ?.trackVariantId,
-      ];
-      if (this.areTrackVariantsDifferent(trackVariants))
-        similarTracks.push({
-          trackId: track.trackId,
-          artist: track.artist,
-          artistId: track.artistId,
-          title: track.title,
-          album: track.album,
-          releaseDate: track.releaseDate,
-          durationMs: track.durationMs,
-          trackVariantId: track.trackVariantId,
-        });
+    if (!profiles || profiles.length === 0) {
+      return [];
     }
+
+    const exactTrackVariantIds = new Set<string>();
+    for (const track of exactTracks) {
+      exactTrackVariantIds.add(track.trackVariantId);
+    }
+
+    const trackSetsByTrackId = profiles.map((profileTracks) => {
+      const trackMap = new Map<string, TrackWithVariantId[]>();
+      for (const track of profileTracks) {
+        if (!trackMap.has(track.trackId)) {
+          trackMap.set(track.trackId, []);
+        }
+        trackMap.get(track.trackId)!.push(track);
+      }
+      return trackMap;
+    });
+
+    const [firstSet, ...otherSets] = trackSetsByTrackId;
+    const similarTracks: TrackWithVariantId[] = [];
+
+    firstSet.forEach((_tracks, trackId) => {
+      const presentInAll = otherSets.every((set) => set.has(trackId));
+      
+      if (presentInAll) {
+        const allVariants: TrackWithVariantId[] = [];
+        for (const trackSet of trackSetsByTrackId) {
+          const variants = trackSet.get(trackId) || [];
+          allVariants.push(...variants);
+        }
+
+        const filteredVariants = allVariants.filter(
+          (track) => !exactTrackVariantIds.has(track.trackVariantId),
+        );
+
+        const variantsByProfile: TrackWithVariantId[][] = [];
+        for (const trackSet of trackSetsByTrackId) {
+          const profileVariants = (trackSet.get(trackId) || []).filter(
+            (track) => !exactTrackVariantIds.has(track.trackVariantId),
+          );
+          variantsByProfile.push(profileVariants);
+        }
+
+        const allProfilesHaveVariants = variantsByProfile.every(
+          (variants) => variants.length > 0,
+        );
+
+        if (allProfilesHaveVariants && filteredVariants.length > 0) {
+          const uniqueVariantIds = new Set<string>();
+          for (const variant of filteredVariants) {
+            uniqueVariantIds.add(variant.trackVariantId);
+          }
+
+          if (uniqueVariantIds.size > 1) {
+            const addedVariants = new Set<string>();
+            for (const variant of filteredVariants) {
+              if (!addedVariants.has(variant.trackVariantId)) {
+                similarTracks.push(variant);
+                addedVariants.add(variant.trackVariantId);
+              }
+            }
+          }
+        }
+      }
+    });
+
     return similarTracks;
   }
 
-  private areTrackVariantsDifferent(
-    trackVariants: (string | undefined)[],
-  ): boolean {
-    return trackVariants.some(
-      (variant, index) => variant !== trackVariants[index + 1],
-    );
+  private filterExactTracks(
+    tracks: TrackWithVariantId[][],
+  ): TrackWithVariantId[] {
+    if (!tracks || tracks.length === 0) {
+      return [];
+    }
+    const trackSets = tracks.map((trackArr) => {
+      const set = new Map<string, TrackWithVariantId>();
+      for (const track of trackArr) {
+        set.set(track.trackVariantId, track);
+      }
+      return set;
+    });
+
+    const [firstSet, ...otherSets] = trackSets;
+    const exactTracks: TrackWithVariantId[] = [];
+    firstSet.forEach((track, trackVariantId) => {
+      const presentInAll = otherSets.every((set) => set.has(trackVariantId));
+      if (presentInAll) {
+        exactTracks.push(track);
+      }
+    });
+
+    return exactTracks;
   }
 
   private buildMessage(
