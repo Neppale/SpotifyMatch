@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Headers,
   Param,
   Post,
   Res,
@@ -15,6 +14,7 @@ import { TrackProcessingEventEmitter } from '@Apps/track-processing/services/tra
 import { Observable } from 'rxjs';
 import { ProfileComparisonFormattedResponse } from '@Apps/shared/profile/models/profile-comparison.model';
 import { SpotifyAvailabilityGuard } from '@Utils/guards/spotify-availability.guard';
+import { SessionId } from '@Utils/decorators/session-id.decorator';
 
 @Controller('profiles')
 @UseGuards(SpotifyAvailabilityGuard)
@@ -28,7 +28,7 @@ export class ProfileController {
   async compare(
     @Body()
     { firstProfile, secondProfile }: CompareProfileDto,
-    @Headers('x-session-id') sessionId: string,
+    @SessionId() sessionId: string,
     @Res() context: Response,
   ): Promise<void> {
     return await this.profileService.compareProfiles(
