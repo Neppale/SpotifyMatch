@@ -22,10 +22,6 @@ export class AxiosExceptionFilter implements ExceptionFilter {
       case 404:
         message = 'Where are you going? This resource does not exist.';
         break;
-      case 429:
-        message =
-          'Sorry, our servers are busy right now. Please try again later.';
-        break;
     }
 
     const body = request.body as CompareProfileDto;

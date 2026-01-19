@@ -36,7 +36,7 @@ export class FlagsmithService {
     }
 
     const flags = await this.flagsmithClient.getEnvironmentFlags();
-    const featureValue = flags.getFeatureValue('available_clients');
+    const featureValue = flags.getFeatureValue('available_clients') as string;
     
     if (!featureValue) {
       this.cachedClients = [];
@@ -44,7 +44,7 @@ export class FlagsmithService {
       return [];
     }
 
-    const clients = featureValue as unknown as AvailableClient[];
+    const clients = JSON.parse(featureValue) as AvailableClient[];
     this.cachedClients = clients;
     this.lastUpdatedAt = now;
     return clients;

@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
 import { ProfileController } from '@Apps/api/profile/controllers/profile.controller';
 import { ProfileService } from '@Apps/api/profile/services/profile.service';
 import { TracksApiService } from '@Apps/api/tracks/tracks-api.service';
@@ -8,14 +7,14 @@ import { TrackProcessingEventEmitter } from '@Apps/track-processing/services/tra
 import { ProfileComparer } from '@Apps/shared/profile/services/profile-comparer.service';
 import { AuthModule } from '@Utils/auth/auth.module';
 import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
+import { RedisModule } from '@Apps/shared/redis/redis.module';
+import { SpotifyAvailabilityGuard } from '@Utils/guards/spotify-availability.guard';
 
 @Module({
   imports: [
     AuthModule,
     PrismaModule,
-    BullModule.registerQueue({
-      name: 'process_tracks',
-    }),
+    RedisModule,
   ],
   controllers: [ProfileController],
   providers: [
@@ -24,6 +23,7 @@ import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
     ProfileSharedRepository,
     TrackProcessingEventEmitter,
     ProfileComparer,
+    SpotifyAvailabilityGuard,
   ],
   exports: [
     ProfileService,

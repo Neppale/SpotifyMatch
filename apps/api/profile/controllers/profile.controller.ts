@@ -6,6 +6,7 @@ import {
   Post,
   Res,
   Sse,
+  UseGuards,
 } from '@nestjs/common';
 import { CompareProfileDto } from '@Apps/api/profile/models/compare-profile.dto';
 import { ProfileService } from '@Apps/api/profile/services/profile.service';
@@ -13,8 +14,10 @@ import { Response } from 'express';
 import { TrackProcessingEventEmitter } from '@Apps/track-processing/services/track-processing-event-emitter.service';
 import { Observable } from 'rxjs';
 import { ProfileComparisonFormattedResponse } from '@Apps/shared/profile/models/profile-comparison.model';
+import { SpotifyAvailabilityGuard } from '@Utils/guards/spotify-availability.guard';
 
 @Controller('profiles')
+@UseGuards(SpotifyAvailabilityGuard)
 export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
