@@ -15,9 +15,9 @@ import { Observable } from 'rxjs';
 import { SpotifyAvailabilityGuard } from '@Utils/guards/spotify-availability.guard';
 import { SessionId } from '@Utils/decorators/session-id.decorator';
 
-@Controller('profiles')
+@Controller()
 @UseGuards(SpotifyAvailabilityGuard)
-export class ProfileController {
+export class ApiController {
   constructor(
     private readonly profileService: ProfileService,
     private readonly eventEmitter: TrackProcessingEventEmitter,

@@ -61,4 +61,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   getClientUnavailableKey(clientId: string): string {
     return `${this.CLIENT_UNAVAILABLE_KEY_PREFIX}${clientId}`;
   }
+
+  async clearClientUnavailable(clientId: string): Promise<void> {
+    const key = this.getClientUnavailableKey(clientId);
+    await this.client.del(key);
+  }
 }

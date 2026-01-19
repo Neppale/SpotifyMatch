@@ -7,6 +7,8 @@ import { RedisModule } from '@Apps/shared/redis/redis.module';
 import { ProfileModule } from '@Apps/api/profile/profile.module';
 import { AuthModule } from '@Utils/auth/auth.module';
 import { ClientsUnavailableExceptionHandler } from '@Apps/track-processing/handlers/clients-unavailable-exception.handler';
+import { ApiController } from '@Apps/api/controllers/api.controller';
+import { ClientsModule } from '@Apps/api/clients/clients.module';
 
 @Module({
   imports: [
@@ -23,7 +25,9 @@ import { ClientsUnavailableExceptionHandler } from '@Apps/track-processing/handl
     RedisModule,
     AuthModule,
     ProfileModule,
+    ClientsModule,
   ],
+  controllers: [ApiController],
   providers: [
     {
       provide: APP_GUARD,

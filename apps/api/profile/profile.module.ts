@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ProfileController } from '@Apps/api/profile/controllers/profile.controller';
 import { ProfileService } from '@Apps/api/profile/services/profile.service';
 import { TracksApiService } from '@Apps/api/tracks/tracks-api.service';
 import { ProfileSharedRepository } from '@Apps/shared/profile/profile-shared.repository';
@@ -16,7 +15,7 @@ import { SpotifyAvailabilityGuard } from '@Utils/guards/spotify-availability.gua
     PrismaModule,
     RedisModule,
   ],
-  controllers: [ProfileController],
+  controllers: [],
   providers: [
     ProfileService,
     TracksApiService,
