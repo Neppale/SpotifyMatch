@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core/constants';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core/constants';
 import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
 import { FlagsmithModule } from '@Apps/shared/flagsmith/flagsmith.module';
 import { RedisModule } from '@Apps/shared/redis/redis.module';
 import { ProfileModule } from '@Apps/api/profile/profile.module';
 import { AuthModule } from '@Utils/auth/auth.module';
+import { ClientsUnavailableExceptionHandler } from '@Apps/track-processing/handlers/clients-unavailable-exception.handler';
 
 @Module({
   imports: [
@@ -27,6 +28,11 @@ import { AuthModule } from '@Utils/auth/auth.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    ClientsUnavailableExceptionHandler,
+    {
+      provide: APP_FILTER,
+      useClass: ClientsUnavailableExceptionHandler,
     },
   ],
 })

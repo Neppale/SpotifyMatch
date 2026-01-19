@@ -5,12 +5,13 @@ import { RedisService } from '@Apps/shared/redis/services/redis.service';
 export class SpotifyAvailabilityGuard implements CanActivate {
   constructor(private readonly redisService: RedisService) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(_context: ExecutionContext): Promise<boolean> {
     const isAvailable = await this.redisService.checkSpotifyStatus();
     
     if (!isAvailable) {
-      throw new ServiceUnavailableException(
-        'Spotify service is currently unavailable. Please try again later.',
+      throw new ServiceUnavailableException({
+        message: 'Spotify service is currently unavailable. Please try again later.',
+      },
       );
     }
 
