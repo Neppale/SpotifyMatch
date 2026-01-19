@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { SpotifyService } from '@Apps/shared/spotify/services/spotify.service';
-import { DetailedTrack } from '@Apps/shared/tracks/models/detailed-track.model';
 import { Item } from '@Playlist/models/detailed-playlist.model';
-import { Track } from '@PrismaClient';
 
 @Injectable()
 export class ApiTrackService {
