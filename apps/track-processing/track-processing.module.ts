@@ -6,6 +6,7 @@ import { TrackProcessingEventEmitter } from './services/track-processing-event-e
 import { TrackProcessingProcessor } from './processors/track-processing.processor';
 import { AuthModule } from '@Utils/auth/auth.module';
 import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
+import { FlagsmithModule } from '@Apps/shared/flagsmith/flagsmith.module';
 import { TracksTrackProcessingRepository } from '@Apps/track-processing/tracks/tracks-track-processing.repository';
 import { ProfileSharedRepository } from '@Apps/shared/profile/profile-shared.repository';
 import { ProfileComparer } from '@Apps/shared/profile/services/profile-comparer.service';
@@ -15,6 +16,7 @@ dotenv.config();
 @Module({
   imports: [
     PrismaModule,
+    FlagsmithModule,
     AuthModule,
     BullModule.forRoot({
       connection: {

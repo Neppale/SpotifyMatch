@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
+import { FlagsmithModule } from '@Apps/shared/flagsmith/flagsmith.module';
 import { ProfileModule } from '@Apps/api/profile/profile.module';
 import { AuthModule } from '@Utils/auth/auth.module';
 
@@ -16,6 +17,7 @@ import { AuthModule } from '@Utils/auth/auth.module';
       ],
     }),
     PrismaModule,
+    FlagsmithModule,
     AuthModule,
     ProfileModule,
   ],
