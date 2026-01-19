@@ -5,4 +5,5 @@ export class ProfileComparisonFormattedResponse {
   callToAction: string;
   exactTracks: TrackWithVariantId[];
   similarTracks: TrackWithVariantId[];
+  unavailableTracks: TrackWithVariantId[];
 }

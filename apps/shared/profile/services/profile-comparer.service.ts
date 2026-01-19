@@ -10,9 +10,11 @@ export class ProfileComparer {
   ): ProfileComparisonFormattedResponse {
     const profiles = [firstProfileTracks, secondProfileTracks];
 
-    const exactTracks = this.filterExactTracks(profiles);
+    const unavailableTracks = this.filterUnavailableTracks(profiles);
 
-    const similarTracks = this.filterSimilarTracks(profiles, exactTracks);
+    const exactTracks = this.filterExactTracks(profiles, unavailableTracks);
+
+    const similarTracks = this.filterSimilarTracks(profiles, exactTracks, unavailableTracks);
 
     const allUniqueTrackIds = new Set<string>();
     for (const profile of profiles) {
@@ -36,6 +38,7 @@ export class ProfileComparer {
       callToAction: this.buildCallToAction(),
       exactTracks,
       similarTracks,
+      unavailableTracks,
     };
 
     return formattedResponse;
@@ -44,6 +47,7 @@ export class ProfileComparer {
   private filterSimilarTracks(
     profiles: TrackWithVariantId[][],
     exactTracks: TrackWithVariantId[],
+    unavailableTracks: TrackWithVariantId[],
   ): TrackWithVariantId[] {
     if (!profiles || profiles.length === 0) {
       return [];
@@ -54,9 +58,17 @@ export class ProfileComparer {
       exactTrackVariantIds.add(track.trackVariantId);
     }
 
+    const unavailableTrackVariantIds = new Set<string>();
+    for (const track of unavailableTracks) {
+      unavailableTrackVariantIds.add(track.trackVariantId);
+    }
+
     const trackSetsByTrackId = profiles.map((profileTracks) => {
       const trackMap = new Map<string, TrackWithVariantId[]>();
       for (const track of profileTracks) {
+        if (unavailableTrackVariantIds.has(track.trackVariantId)) {
+          continue;
+        }
         if (!trackMap.has(track.trackId)) {
           trackMap.set(track.trackId, []);
         }
@@ -79,13 +91,17 @@ export class ProfileComparer {
         }
 
         const filteredVariants = allVariants.filter(
-          (track) => !exactTrackVariantIds.has(track.trackVariantId),
+          (track) =>
+            !exactTrackVariantIds.has(track.trackVariantId) &&
+            !unavailableTrackVariantIds.has(track.trackVariantId),
         );
 
         const variantsByProfile: TrackWithVariantId[][] = [];
         for (const trackSet of trackSetsByTrackId) {
           const profileVariants = (trackSet.get(trackId) || []).filter(
-            (track) => !exactTrackVariantIds.has(track.trackVariantId),
+            (track) =>
+              !exactTrackVariantIds.has(track.trackVariantId) &&
+              !unavailableTrackVariantIds.has(track.trackVariantId),
           );
           variantsByProfile.push(profileVariants);
         }
@@ -116,16 +132,47 @@ export class ProfileComparer {
     return similarTracks;
   }
 
-  private filterExactTracks(
+  private filterUnavailableTracks(
     tracks: TrackWithVariantId[][],
   ): TrackWithVariantId[] {
     if (!tracks || tracks.length === 0) {
       return [];
     }
+
+    const unavailableTracks: TrackWithVariantId[] = [];
+    const addedVariantIds = new Set<string>();
+
+    for (const profileTracks of tracks) {
+      for (const track of profileTracks) {
+        if (track.durationMs === 0 && !addedVariantIds.has(track.trackVariantId)) {
+          unavailableTracks.push(track);
+          addedVariantIds.add(track.trackVariantId);
+        }
+      }
+    }
+
+    return unavailableTracks;
+  }
+
+  private filterExactTracks(
+    tracks: TrackWithVariantId[][],
+    unavailableTracks: TrackWithVariantId[],
+  ): TrackWithVariantId[] {
+    if (!tracks || tracks.length === 0) {
+      return [];
+    }
+
+    const unavailableTrackVariantIds = new Set<string>();
+    for (const track of unavailableTracks) {
+      unavailableTrackVariantIds.add(track.trackVariantId);
+    }
+
     const trackSets = tracks.map((trackArr) => {
       const set = new Map<string, TrackWithVariantId>();
       for (const track of trackArr) {
-        set.set(track.trackVariantId, track);
+        if (!unavailableTrackVariantIds.has(track.trackVariantId)) {
+          set.set(track.trackVariantId, track);
+        }
       }
       return set;
     });
