@@ -3,7 +3,7 @@ import { PrismaService } from '@Apps/shared/prisma/services/prisma.service';
 import { Prisma, TrackVariant } from '@PrismaClient';
 
 @Injectable()
-export class TracksTrackProcessingRepository {
+export class TrackProcessingTrackRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getTracksBySpotifyId(

@@ -3,8 +3,8 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import axios from 'axios';
 import crypto from 'crypto';
-import { AuthService } from '@Utils/auth/services/auth.service';
-import { TracksApiService } from '@Apps/api/tracks/tracks-api.service';
+import { SpotifyService } from '@Apps/shared/spotify/services/spotify.service';
+import { ApiTrackService } from '@Apps/api/tracks/api-track.service';
 import { ProfileSharedRepository } from '@Apps/shared/profile/profile-shared.repository';
 import { ProfilePlaylistData } from '@Apps/api/profile/models/profile-playlist-data.model';
 import { CompareProfileDto } from '@Apps/api/profile/models/compare-profile.dto';
@@ -17,8 +17,8 @@ export class ProfileService {
   private readonly url = 'https://api.spotify.com/v1/users/';
 
   constructor(
-    private readonly authService: AuthService,
-    private readonly trackService: TracksApiService,
+    private readonly spotifyService: SpotifyService,
+    private readonly trackService: ApiTrackService,
     private readonly profileRepository: ProfileSharedRepository,
     @InjectQueue('process_tracks') private readonly processTracksQueue: Queue,
     private readonly profileComparer: ProfileComparer,
@@ -27,7 +27,7 @@ export class ProfileService {
   async findPlaylists(
     profileId: string,
   ): Promise<{ playlistId: string; snapshotId: string }[]> {
-    const response = await this.authService.requestWithAuth(async (token) => {
+    const response = await this.spotifyService.requestWithAuth(async (token) => {
       return await axios.get(`${this.url}${profileId}/playlists`, {
         headers: {
           Authorization: token,

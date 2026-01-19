@@ -5,11 +5,12 @@ import { TrackProcessingService } from './services/track-processing.service';
 import { TrackProcessingEventEmitter } from './services/track-processing-event-emitter.service';
 import { TrackProcessingProcessor } from './processors/track-processing.processor';
 import { ClientsUnavailableExceptionHandler } from './handlers/clients-unavailable-exception.handler';
-import { AuthModule } from '@Utils/auth/auth.module';
+import { SpotifyModule } from '@Apps/shared/spotify/spotify.module';
 import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
 import { FlagsmithModule } from '@Apps/shared/flagsmith/flagsmith.module';
 import { RedisModule } from '@Apps/shared/redis/redis.module';
-import { TracksTrackProcessingRepository } from '@Apps/track-processing/tracks/tracks-track-processing.repository';
+import { TrackProcessingTrackRepository } from '@Apps/track-processing/tracks/track-processing-track.repository';
+import { TrackProcessingTrackService } from '@Apps/track-processing/tracks/services/track-processing-track.service';
 import { ProfileSharedRepository } from '@Apps/shared/profile/profile-shared.repository';
 import { ProfileComparer } from '@Apps/shared/profile/services/profile-comparer.service';
 
@@ -18,14 +19,15 @@ import { ProfileComparer } from '@Apps/shared/profile/services/profile-comparer.
     PrismaModule,
     FlagsmithModule,
     RedisModule,
-    AuthModule,
+    SpotifyModule,
   ],
   controllers: [TrackProcessingController],
   providers: [
     TrackProcessingService,
     TrackProcessingEventEmitter,
     TrackProcessingProcessor,
-    TracksTrackProcessingRepository,
+    TrackProcessingTrackRepository,
+    TrackProcessingTrackService,
     ProfileSharedRepository,
     ProfileComparer,
     ClientsUnavailableExceptionHandler,

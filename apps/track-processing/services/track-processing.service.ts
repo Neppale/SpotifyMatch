@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AuthService } from '@Utils/auth/services/auth.service';
-import { TracksTrackProcessingRepository } from '@Apps/track-processing/tracks/tracks-track-processing.repository';
+import { TrackProcessingTrackRepository } from '@Apps/track-processing/tracks/track-processing-track.repository';
 import { ProfileSharedRepository } from '@Apps/shared/profile/profile-shared.repository';
 import { DetailedTrack } from '@Apps/shared/tracks/models/detailed-track.model';
 import { ProcessProfilesMessage } from '../profile/models/process-profiles-message.dto';
 import { Prisma } from '@PrismaClient';
-import axios from 'axios';
 import { TrackProcessingEventEmitter } from './track-processing-event-emitter.service';
 import { ProfileComparer } from '@Apps/shared/profile/services/profile-comparer.service';
+import { TrackProcessingTrackService } from '@Apps/track-processing/tracks/services/track-processing-track.service';
 
 export interface NormalizedTrackData {
   artist: string;
@@ -23,14 +22,13 @@ export interface NormalizedTrackData {
 @Injectable()
 export class TrackProcessingService {
   private readonly logger = new Logger(TrackProcessingService.name);
-  private readonly url = 'https://api.spotify.com/v1/tracks/';
 
   constructor(
-    private readonly authService: AuthService,
-    private readonly trackRepository: TracksTrackProcessingRepository,
+    private readonly trackRepository: TrackProcessingTrackRepository,
     private readonly profileRepository: ProfileSharedRepository,
     private readonly eventEmitter: TrackProcessingEventEmitter,
     private readonly profileComparer: ProfileComparer,
+    private readonly trackProcessingTrackService: TrackProcessingTrackService,
   ) {}
 
   async processProfiles(data: ProcessProfilesMessage): Promise<void> {
@@ -129,7 +127,7 @@ export class TrackProcessingService {
       return trackDataMap;
     }
 
-    const fetchedTracks = await this.getBatchedDetailedTracks(tracksToFetch);
+    const fetchedTracks = await this.trackProcessingTrackService.getBatchedDetailedTracks(tracksToFetch);
     const fetchedTrackIds = new Set<string>();
     for (const track of fetchedTracks) {
       if (track && track.id) {
@@ -423,30 +421,4 @@ export class TrackProcessingService {
     await this.profileRepository.upsertManyProfiles(profiles);
   }
 
-  private async getBatchedDetailedTracks(
-    trackIds: string[],
-  ): Promise<DetailedTrack[]> {
-    const BATCH_SIZE = 50;
-    const batches: string[][] = [];
-    for (let i = 0; i < trackIds.length; i += BATCH_SIZE) {
-      batches.push(trackIds.slice(i, i + BATCH_SIZE));
-    }
-    return await Promise.all(
-      batches.map(async (batch: string[]) => {
-        return await this.authService.requestWithAuth(async (token) => {
-          const response = await axios.get(
-            `${this.url}?ids=${batch.join(',')}`,
-            {
-              headers: {
-                Authorization: token,
-              },
-            },
-          );
-          return response.data.tracks as DetailedTrack[];
-        });
-      }),
-    ).then((data) => {
-      return data.flat().filter((track) => track !== null);
-    });
-  }
 }

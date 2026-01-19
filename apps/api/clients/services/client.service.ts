@@ -28,10 +28,9 @@ export class ClientService {
 
   async clearUnavailableClients(): Promise<void> {
     const clients = await this.flagsmithService.getAvailableClients();
-    
-    await Promise.all(
-      clients.map((client) => this.redisService.clearClientUnavailable(client.id)),
-    );
-    await this.redisService.updateSpotifyStatus(true);
+
+    const promises = clients.map((client) => this.redisService.clearClientUnavailable(client.id));
+    promises.push(this.redisService.updateSpotifyStatus(true));
+    await Promise.all(promises);
   }
 }

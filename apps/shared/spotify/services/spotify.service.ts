@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios, { AxiosError } from 'axios';
-import { AccessTokenModel } from '@Utils/auth/models/access-token.model';
+import { AccessTokenModel } from '@Apps/shared/spotify/models/access-token.model';
 import { FlagsmithService } from '@Apps/shared/flagsmith/services/flagsmith.service';
 import { RedisService } from '@Apps/shared/redis/services/redis.service';
 import { ClientsUnavailableException } from '@Apps/shared/exceptions/clients-unavailable.exception';
@@ -11,7 +11,7 @@ interface Client {
 }
 
 @Injectable()
-export class AuthService {
+export class SpotifyService {
   private cachedToken: string | null = null;
   private tokenExpiresAt: number | null = null;
   private tokenRefreshPromise: Promise<string> | null = null;

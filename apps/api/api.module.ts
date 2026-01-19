@@ -5,7 +5,7 @@ import { PrismaModule } from '@Apps/shared/prisma/prisma.module';
 import { FlagsmithModule } from '@Apps/shared/flagsmith/flagsmith.module';
 import { RedisModule } from '@Apps/shared/redis/redis.module';
 import { ProfileModule } from '@Apps/api/profile/profile.module';
-import { AuthModule } from '@Utils/auth/auth.module';
+import { SpotifyModule } from '@Apps/shared/spotify/spotify.module';
 import { ClientsUnavailableExceptionHandler } from '@Apps/track-processing/handlers/clients-unavailable-exception.handler';
 import { ApiController } from '@Apps/api/controllers/api.controller';
 import { ClientsModule } from '@Apps/api/clients/clients.module';
@@ -23,7 +23,7 @@ import { ClientsModule } from '@Apps/api/clients/clients.module';
     PrismaModule,
     FlagsmithModule,
     RedisModule,
-    AuthModule,
+    SpotifyModule,
     ProfileModule,
     ClientsModule,
   ],
